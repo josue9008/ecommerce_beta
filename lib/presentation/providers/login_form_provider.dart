@@ -1,10 +1,15 @@
-//! 1- State del provider
-
-import 'package:ecommerce_beta/presentation/widgets/widgets.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
+import 'package:ecommerce_beta/presentation/widgets/widgets.dart';
 
+//! 3- StateNotifierProvider - consume afuera
+
+final loginFormProvider = StateNotifierProvider.autoDispose<LoginFormNotifier, LoginFormState>((ref) {
+  return LoginFormNotifier(); 
+});
+
+
+//! 1- State del provider
 class LoginFormState {
   final bool isPosting; // variable para saber si se encuentra posteando
   final bool
@@ -88,9 +93,3 @@ class LoginFormNotifier extends StateNotifier<LoginFormState> {
   } 
 
 }
-
-//! 3- StateNotifierProvider - consume afuera
-
-final LoginFormProvider = StateNotifierProvider.autoDispose<LoginFormNotifier, LoginFormState>((ref) {
-  return LoginFormNotifier(); 
-});
