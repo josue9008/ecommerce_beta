@@ -45,7 +45,8 @@ class RegisterScreen extends StatelessWidget {
                 const SizedBox( height: 50 ),
     
                 Container(
-                  height: size.height - 260, // 80 los dos sizebox y 100 el ícono
+                  //height: size.height - 260, // 80 los dos sizebox y 100 el ícono
+                  height: size.height -180,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: scaffoldBackgroundColor,
@@ -75,7 +76,7 @@ class _RegisterForm extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox( height: 50 ),
-          Text('Nueva cuenta', style: textStyles.titleMedium ),
+          // TODO: se puede colocar Text('Nueva cuenta', style: textStyles.titleMedium ),
           const SizedBox( height: 50 ),
 
           const CustomTextFormField(
