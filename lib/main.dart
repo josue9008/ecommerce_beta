@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:ecommerce_beta/config/router/app_router.dart';
-import 'package:ecommerce_beta/config/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ecommerce_beta/config/config.dart';
 
-void main() {
-
-  runApp(    
-    const ProviderScope(child:MainApp() )
-  );
+void main() async {
   
-}
+  await Environment.initEnvironment();
 
+  runApp(
+    const ProviderScope(child: MainApp())
+  );
+}
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
