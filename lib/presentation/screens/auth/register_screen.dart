@@ -69,7 +69,7 @@ class _RegisterForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final textStyles = Theme.of(context).textTheme;
+    //final textStyles = Theme.of(context).textTheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 50),

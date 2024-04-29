@@ -1,8 +1,9 @@
 .env
-linux
-macos
-web
-windows
+linux/
+macos/
+web/
+windows/
+pubspec.lock
 
 # Miscellaneous
 *.class

@@ -10,7 +10,24 @@ void main() async {
     const ProviderScope(child: MainApp())
   );
 }
-class MainApp extends StatelessWidget {
+
+
+class MainApp extends ConsumerWidget {
+  const MainApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appRouter = ref.watch(goRouterProvider);
+    return MaterialApp.router(
+       title: 'EcommerceApp',
+      routerConfig: appRouter,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme(selectedColor: 7).getTheme()     
+    );
+  }
+}
+
+/*class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
@@ -22,4 +39,4 @@ class MainApp extends StatelessWidget {
       theme: AppTheme(selectedColor: 7).getTheme()     
     );
   }
-}
+}*/

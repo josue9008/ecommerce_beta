@@ -8,19 +8,19 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final keyValueStorageService = KeyValueStorageServiceImp();
 
   return AuthNotifier(
-    authRepository: authRepository,
-    keyValueStorageService: keyValueStorageService
-
-    );
+      authRepository: authRepository,
+      keyValueStorageService: keyValueStorageService);
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository authRepository;
   final KeyValueStorageService keyValueStorageService;
-  AuthNotifier({
-    required this.authRepository,
-    required this.keyValueStorageService
-  }) : super(AuthState());
+
+  AuthNotifier(
+      {required this.authRepository, required this.keyValueStorageService})
+      : super(AuthState()) {
+    checkAuthStatus();
+  }
 
   Future<void> loginUser(
       String email, String phoneNumber, String password) async {
@@ -44,14 +44,25 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void registerUser(String email, String phoneNumber, String password) async {}
 
-  void checkAuthStatus() async {}
+  void checkAuthStatus() async {
+    final token = await keyValueStorageService.getValue<String>('token');
+    if( token == null ) return logout();
+
+     try {
+        final user = await authRepository.checkAuthStatus(token);
+        _setLoggedUser(user);
+     } catch (e) {
+        logout();
+     }
+
+  }
 
   void _setLoggedUser(User user) async {
-   await keyValueStorageService.setKeyValue('token', user.token);
+    await keyValueStorageService.setKeyValue('token', user.token);
     state = state.copyWith(
       user: user,
       authStatus: AuthStatus.authenticaded,
-      errorMessage:'',
+      errorMessage: '',
     );
   }
 
