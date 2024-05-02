@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:go_router/go_router.dart';
 
-
 class SlideInfo {
   final String title;
   final String caption;
@@ -12,14 +11,11 @@ class SlideInfo {
 }
 
 final slides = <SlideInfo>[
-  SlideInfo('Busca la comida', 'Exercitation voluptate cillum eu aute dolor irure aliquip.', 'assets/images/1.png'),
-  SlideInfo('Entrega rápida', 'Ullamco ullamco duis labore quis occaecat culpa laborum id incididunt.', 'assets/images/2.png'),
-  SlideInfo('Disfruta la comida', 'Ea officia exercitation voluptate nostrud amet esse ut exercitation deserunt est enim est.', 'assets/images/3.png'),
+  SlideInfo('¡Ofertas increíbles! No te las pierdas', 'Exercitation voluptate cillum eu aute dolor irure aliquip.', 'assets/images/1.png'),
+  SlideInfo('¡Un clic y listo! Compra fácil y segura', 'Ullamco ullamco duis labore quis occaecat culpa laborum id incididunt.', 'assets/images/2.png'),
+  SlideInfo('¡Tu tienda online! Experiencia sin igual', 'Ea officia exercitation voluptate nostrud amet esse ut exercitation deserunt est enim est.', 'assets/images/3.png'),
+  SlideInfo('¡Descuentos exclusivos! Compra ahora.', 'Ea officia exercitation voluptate nostrud amet esse ut exercitation deserunt est enim est.', 'assets/images/2.png'),
 ];
-
-
-
-
 class AppTutorialScreen extends StatefulWidget {
 
   static const name = 'tutorial_screen';
@@ -45,21 +41,18 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
       if ( !endReached && page >= (slides.length - 1.5) ) {
         setState(() {
           endReached = true;
-        });
-      }
-
-    });
-
+        }
+    );
   }
+}
+);
+}
 
   @override
   void dispose() {
     pageviewController.dispose();
-
     super.dispose();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +60,6 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-
           PageView(
             controller: pageviewController,
             physics: const BouncingScrollPhysics(),
@@ -79,7 +71,6 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
               )
             ).toList(),
           ),
-
           Positioned(
             right: 20,
             top: 50,
@@ -105,19 +96,14 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
                   child: const Text('Comenzar'),
                 ),
               )
-            ): 
-            
+            ):             
             const SizedBox(),
         ],
       ),
-
     );
   }
 }
-
-
 class _Slide extends StatelessWidget {
-
   final String title;
   final String caption;
   final String imageUrl;
@@ -145,8 +131,7 @@ class _Slide extends StatelessWidget {
             const SizedBox(height: 20 ),
             Text( title, style: titleStyle, ),
             const SizedBox(height: 10 ),
-            Text( caption, style: captionStyle, ),
-
+            Text( caption, style: captionStyle ),
           ],
         ),
       ),

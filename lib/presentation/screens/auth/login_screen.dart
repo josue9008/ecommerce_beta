@@ -1,10 +1,12 @@
-import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
-import 'package:ecommerce_beta/presentation/providers/login_form_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:ecommerce_beta/presentation/widgets/widgets.dart';
+
+import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
+import 'package:ecommerce_beta/presentation/providers/login_form_provider.dart';
+//import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatelessWidget {
 
@@ -65,7 +67,8 @@ class _LoginForm extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) {    
+    
 
     final loginForm = ref.watch(loginFormProvider);
 
@@ -90,6 +93,7 @@ class _LoginForm extends ConsumerWidget {
             onChanged: ref.read(loginFormProvider.notifier).onEmailChange ,
             errorMessage: loginForm.isFormPosted ? loginForm.email.errorMessage : null,
           ),
+          
           const SizedBox( height: 30 ),
 
           CustomTextFormField(
@@ -107,9 +111,12 @@ class _LoginForm extends ConsumerWidget {
             child: CustomFilledButton(
               text: 'Ingresar',
               buttonColor: Colors.black,
-              onPressed: loginForm.isPosting 
+              onPressed:() {     
+                 ref.read(loginFormProvider.notifier).onFormSubmit();
+                 context.push('/product');
+              }, /*loginForm.isPosting 
                         ? null
-                        : ref.read(loginFormProvider.notifier).onFormSubmit() 
+                        : ref.read(loginFormProvider.notifier).onFormSubmit() */
               /*(){
                  // ref.read(loginFormProvider.notifier).onFormSubmit();
               },*/

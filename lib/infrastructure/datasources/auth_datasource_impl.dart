@@ -1,7 +1,11 @@
+
+
 import 'package:dio/dio.dart';
 import 'package:ecommerce_beta/config/config.dart';
 import 'package:ecommerce_beta/domain/domain.dart';
 import 'package:ecommerce_beta/infrastructure/infrastructure.dart';
+
+
 
 class AuthDatasourceImpl extends AuthDataSource {
   final dio = Dio(BaseOptions(baseUrl: Environment.apiUrl));
@@ -61,5 +65,13 @@ class AuthDatasourceImpl extends AuthDataSource {
       String email, String phoneNumber, String password, String fullName) {
     // TODO: implement register
     throw UnimplementedError();
+  }
+  
+  @override
+  Future<User> simulatedLogin(String email, String password) async {      
+    // TODO: implement register
+    throw UnimplementedError();
+
+     
   }
 }

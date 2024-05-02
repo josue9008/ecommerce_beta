@@ -3,50 +3,54 @@ import 'package:formz/formz.dart';
 import 'package:ecommerce_beta/presentation/widgets/widgets.dart';
 import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
 
+
 //! 3- StateNotifierProvider - consume afuera
 
-final loginFormProvider = StateNotifierProvider.autoDispose<LoginFormNotifier, LoginFormState>((ref) {
+final registerFormProvider = StateNotifierProvider.autoDispose<RegisterFormNotifier, RegisterFormState>((ref) {
   
   //final loginUserCallback = ref.watch(authProvider.notifier).loginUser;
-  final simulatedLoginUserCallback = ref.watch(authProvider.notifier).simulatedLoginUser;
+  final simulatedRegisternUserCallback = ref.watch(authProvider.notifier).registerUser;
   
-  return LoginFormNotifier(
+  return RegisterFormNotifier(
     // loginUserCallback: loginUserCallback
-    loginUserCallback: simulatedLoginUserCallback
+    loginUserCallback: simulatedRegisternUserCallback
   ); 
 });
 
 
 //! 1- State del provider
-class LoginFormState {
+class RegisterFormState {
   final bool isPosting; // variable para saber si se encuentra posteando
   final bool isFormPosted; // variable para conocer si la persona intento postearlo, y asi usarlo para mostrar errores
   final bool isValid;
+  final String fullName;
   final Email email;
   final Password password;
   //final String phoneNumber;
 
-  LoginFormState({
+  RegisterFormState({
     this.isPosting = false,
     this.isFormPosted = false,
     this.isValid = false,
+    this.fullName = '',
     this.email = const Email.pure(),
     this.password = const Password.pure(),
     //this.phoneNumber = ''
   });
 
-  LoginFormState copyWith(
+  RegisterFormState copyWith(
           {bool? isPosting,
           bool? isFormPosted,
           bool? isValid,
+          String? fullName,
           Email? email,
-          Password? password,
-          String? phoneNumber
+          Password? password,          
           }) =>
-      LoginFormState(
+      RegisterFormState(
           isPosting: isPosting ?? this.isPosting,
           isFormPosted: isFormPosted ?? this.isFormPosted,
           isValid: isValid ?? this.isValid,
+          fullName: fullName ?? this.fullName,
           email: email ?? this.email,
           password: password ?? this.password,
           //phoneNumber: phoneNumber ?? this.phoneNumber
@@ -59,6 +63,7 @@ class LoginFormState {
       isPosting : $isPosting
       isFormPosted : $isFormPosted
       isValid : $isValid
+      fullName: $fullName
       email : $email
       password : $password     
   ''';
@@ -66,15 +71,15 @@ class LoginFormState {
 }
 
 //! 2- Como implementamos un notifier
-class LoginFormNotifier extends StateNotifier<LoginFormState> {
+class RegisterFormNotifier extends StateNotifier<RegisterFormState> {
   
   //final Function(String, String, String) loginUserCallback;
 
-  final Function(String, String) loginUserCallback;
+  final Function(String, String, String) loginUserCallback;
 
-  LoginFormNotifier({
+ RegisterFormNotifier({
     required this.loginUserCallback,
-  }) : super(LoginFormState());
+  }) : super(RegisterFormState());
 
   onEmailChange(String value) {
     final newEmail = Email.dirty(value);
@@ -101,20 +106,20 @@ class LoginFormNotifier extends StateNotifier<LoginFormState> {
 
      if( !state.isValid ) return;
      //await loginUserCallback(state.email.value, state.phoneNumber, state.password.value);
-     await loginUserCallback(state.email.value, state.password.value);
-     
+     await loginUserCallback(state.fullName, state.email.value, state.password.value);
 
      state = state.copyWith(
         isPosting: false        
     ); 
   }
 
-  _touchEveryField(){
+  _touchEveryField(){    
     final email = Email.dirty(state.email.value);
     final password = Password.dirty(state.password.value);
 
     state = state.copyWith(
       isFormPosted: true,
+      fullName: ' ',
       email: email,
       password: password,
       isValid: Formz.validate([email,password])

@@ -24,5 +24,11 @@ class AuthRepositoryImpl extends AuthRepository{
   Future<User> register(String email, String phoneNumber, String password, String fullName) {
      return dataSource.register(email, phoneNumber, password, fullName);
   }
+  
+  @override
+  Future<User> simulatedLogin(String email, String password) {
+      return dataSource.simulatedLogin(email, password);
+     
+  }
 
 }

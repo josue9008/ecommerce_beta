@@ -9,7 +9,7 @@ final goRouterProvider = Provider((ref) {
   final goRouterNotifier = ref.read(goRouterNotifierProvider);
   return  GoRouter(
     initialLocation: '/',
-     refreshListenable: goRouterNotifier  ,
+    refreshListenable: goRouterNotifier  ,
     routes: [
       GoRoute(
         path: '/',
@@ -39,7 +39,6 @@ final goRouterProvider = Provider((ref) {
     ],  
     redirect: (context, state) {
       // print(state.subloc); state.subloc no funciona para la version que se encuentra trabajando
-
        final isGoingTo = state.location;// state.subloc 
        final authStatus = goRouterNotifier.authStatus;
 
@@ -61,38 +60,3 @@ final goRouterProvider = Provider((ref) {
   //return goRouter;
 }
 );
-
-
-
-
-/*final appRouter = 
-GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
-      name: AppTutorialScreen.name,
-      builder: (context, state) => const AppTutorialScreen(),
-    ),
-     GoRoute(
-      path: '/splash',
-      name: CheckAuthStatusScreen.name,
-      builder: (context, state) => const CheckAuthStatusScreen(),
-    ),
-    GoRoute(
-      path: '/login',
-      name: LoginScreen.name,
-      builder: (context, state) => const LoginScreen(),
-    ),
-     GoRoute(
-      path: '/register',
-      name: RegisterScreen.name,
-      builder: (context, state) => const RegisterScreen(),
-    ), 
-    GoRoute(
-      path: '/product',
-      name: ProductsScreen.name,
-      builder: (context, state) => const ProductsScreen(),
-    ),
-  ],
-);*/

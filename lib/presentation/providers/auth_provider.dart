@@ -1,4 +1,4 @@
-//import 'package:ecommerce_beta/infrastructure/services/key_value_storage_service_impl.dart';
+import 'package:ecommerce_beta/infrastructure/services/key_value_storage_service_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ecommerce_beta/infrastructure/infrastructure.dart';
 import '../../domain/domain.dart';
@@ -42,7 +42,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
     //state = state.copyWith(user:user, authStatus: AuthStatus.authenticaded);
   }
 
-  void registerUser(String email, String phoneNumber, String password) async {}
+  
+
+  Future<void> simulatedLoginUser(
+      String email, String password) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final storedEmail = await keyValueStorageService.getValue<String>('email');    
+
+    if (storedEmail == null || storedEmail != email)  return;  
+   final user = await authRepository.simulatedLogin(email, password);
+     _setLoggedUser(user);
+   
+   
+   /*else{
+    
+     final user = await authRepository.simulatedLogin(email, password);
+     _setLoggedUser(user);
+   }*/
+    
+  }
+
+  void registerUser(String fullName,String email,String password) async {}
 
   void checkAuthStatus() async {
     final token = await keyValueStorageService.getValue<String>('token');
@@ -59,11 +79,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void _setLoggedUser(User user) async {
     await keyValueStorageService.setKeyValue('token', user.token);
+    //await keyValueStorageService.setKeyValue('token', '1222222');
     state = state.copyWith(
       user: user,
       authStatus: AuthStatus.authenticaded,
       errorMessage: '',
-    );
+    );   
   }
 
   Future<void> logout([String? errorMessage]) async {
@@ -89,10 +110,11 @@ class AuthState {
   final String errorMessage;
 
   AuthState(
-      {this.authStatus = AuthStatus
-          .checking, // Al iniciar es checking porque no se sabe si se encuentra autenticado o no
+      {this.authStatus = AuthStatus.checking, // Al iniciar es checking porque no se sabe si se encuentra autenticado o no
       this.user,
-      this.errorMessage = ''});
+      this.errorMessage = ''
+      }
+  );
 
   AuthState copyWith({
     AuthStatus? authStatus,

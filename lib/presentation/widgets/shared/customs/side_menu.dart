@@ -1,6 +1,7 @@
-import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
+//import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 //import 'package:go_router/go_router.dart';
 import 'custom_filled_button.dart';
 
@@ -49,9 +50,9 @@ class SideMenuState extends ConsumerState<SideMenu> {
           child: Text('Saludos', style: textStyles.titleMedium ),
         ),
 
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 16, 10),
-          child: Text('Tony Stark', style: textStyles.titleSmall ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 0, 16, 10),
+          //child: Text('Tony Stark', style: textStyles.titleSmall ),
         ),
 
         const NavigationDrawerDestination(
@@ -75,7 +76,8 @@ class SideMenuState extends ConsumerState<SideMenu> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: CustomFilledButton(
             onPressed: () {
-              ref.read(authProvider.notifier).logout();
+              //ref.read(authProvider.notifier).logout();
+               context.push('/login');
             },
             text: 'Cerrar sesión'
           ),
