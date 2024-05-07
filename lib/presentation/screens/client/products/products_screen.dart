@@ -37,6 +37,7 @@ class ProductsScreen extends StatelessWidget {
 
 
 class _ProductsView extends StatelessWidget {
+    
   const _ProductsView();
 
   @override

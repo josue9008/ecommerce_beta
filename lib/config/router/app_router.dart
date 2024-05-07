@@ -1,11 +1,52 @@
-import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+//import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ecommerce_beta/config/router/app_router_notifier.dart';
+//import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
+//import 'package:ecommerce_beta/config/router/app_router_notifier.dart';
 import '../../presentation/screens/screens.dart';
 
+final appRouter = GoRouter(
+  initialLocation: '/',
+  routes: [
+      GoRoute(
+        path: '/',
+        name: AppTutorialScreen.name,
+        builder: (context, state) => const AppTutorialScreen(),
+      ),
+      GoRoute(
+      path: '/splash',
+      name: CheckAuthStatusScreen.name,
+      builder: (context, state) => const CheckAuthStatusScreen(),
+    ),
+    GoRoute(
+      path: '/login',
+      name: LoginScreen.name,
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/loginfirebase',
+      name: AuthFirebaseScreen.name,
+      builder: (context, state) => const AuthFirebaseScreen(),
+    ),
+    GoRoute(
+      path: '/loginfirebase1',
+      name: LoginFirebaseScreen1.name,
+      builder: (context, state) => const LoginFirebaseScreen1(),
+    ),
+     GoRoute(
+      path: '/register',
+      name: RegisterScreen.name,
+      builder: (context, state) => const RegisterScreen(),
+    ), 
+    GoRoute(
+      path: '/product',
+      name: ProductsScreen.name,
+      builder: (context, state) => const ProductsScreen(),
+    ),
+    ], 
+);
 
-final goRouterProvider = Provider((ref) {
+
+/*final goRouterProvider = Provider((ref) {
   final goRouterNotifier = ref.read(goRouterNotifierProvider);
   return  GoRouter(
     initialLocation: '/',
@@ -25,6 +66,11 @@ final goRouterProvider = Provider((ref) {
       path: '/login',
       name: LoginScreen.name,
       builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/login-firebase',
+      name: AuthFirebaseScreen.name,
+      builder: (context, state) => const AuthFirebaseScreen(),
     ),
      GoRoute(
       path: '/register',
@@ -59,4 +105,4 @@ final goRouterProvider = Provider((ref) {
   );
   //return goRouter;
 }
-);
+);*/

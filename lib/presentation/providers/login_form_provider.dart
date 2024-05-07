@@ -41,7 +41,7 @@ class LoginFormState {
           bool? isValid,
           Email? email,
           Password? password,
-          String? phoneNumber
+          //String? phoneNumber
           }) =>
       LoginFormState(
           isPosting: isPosting ?? this.isPosting,

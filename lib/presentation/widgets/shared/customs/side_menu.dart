@@ -1,8 +1,7 @@
-//import 'package:ecommerce_beta/presentation/providers/auth_provider.dart';
+import 'package:ecommerce_beta/presentation/screens/auth/login_firebase_screen_1.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-//import 'package:go_router/go_router.dart';
 import 'custom_filled_button.dart';
 
 class SideMenu extends ConsumerStatefulWidget {
@@ -75,9 +74,11 @@ class SideMenuState extends ConsumerState<SideMenu> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: CustomFilledButton(
-            onPressed: () {
-              //ref.read(authProvider.notifier).logout();
-               context.push('/login');
+            onPressed: ()  async{
+              await FirebaseAuth.instance.signOut();              //ref.read(authProvider.notifier).logout();
+              Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) =>const LoginFirebaseScreen1())
+            );       
             },
             text: 'Cerrar sesión'
           ),

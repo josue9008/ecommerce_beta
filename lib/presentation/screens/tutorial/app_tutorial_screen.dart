@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+//import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:go_router/go_router.dart';
-
+import 'package:ecommerce_beta/presentation/screens/screens.dart';
 class SlideInfo {
   final String title;
   final String caption;
@@ -77,7 +77,9 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
             child: TextButton(
               child: const Text('Salir'),
               onPressed: () {
-                context.push('/login');
+                 Navigator.pushReplacement(context,
+                 MaterialPageRoute(builder: (context) =>const LoginFirebaseScreen1()),
+                );
               },
             )
           ),
@@ -91,7 +93,9 @@ class _AppTutorialScreenState extends State<AppTutorialScreen> {
                 delay: const Duration(seconds: 1),
                 child: FilledButton(
                   onPressed: () {
-                    context.push('/login');
+                    Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) =>const LoginFirebaseScreen1()),
+                    );
                   },
                   child: const Text('Comenzar'),
                 ),

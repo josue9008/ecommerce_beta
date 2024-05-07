@@ -29,6 +29,6 @@ class AuthRepositoryImpl extends AuthRepository{
   Future<User> simulatedLogin(String email, String password) {
       return dataSource.simulatedLogin(email, password);
      
-  }
-
+  }  
+  
 }
