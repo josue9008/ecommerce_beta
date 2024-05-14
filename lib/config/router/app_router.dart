@@ -33,6 +33,12 @@ final appRouter = GoRouter(
       builder: (context, state) => const LoginFirebaseScreen1(),
     ),
      GoRoute(
+      path: '/loginphone',
+      name: LoginPhoneFirebaseScreen.name,
+      builder: (context, state) => const LoginPhoneFirebaseScreen(),
+    ),
+
+     GoRoute(
       path: '/register',
       name: RegisterScreen.name,
       builder: (context, state) => const RegisterScreen(),
@@ -42,6 +48,11 @@ final appRouter = GoRouter(
       name: ProductsScreen.name,
       builder: (context, state) => const ProductsScreen(),
     ),
+     GoRoute(
+      path: '/administration',
+      name: AdministrationScreen.name,
+      builder: (context, state) => const AdministrationScreen(),
+    ), 
     ], 
 );
 

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:go_router/go_router.dart';
-
 import 'package:ecommerce_beta/infrastructure/infrastructure.dart';
 import 'package:ecommerce_beta/presentation/screens/screens.dart';
-
 import '../../widgets/widgets.dart';
 
 class LoginFirebaseScreen1 extends StatefulWidget {
@@ -18,6 +17,8 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -25,18 +26,96 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
     super.dispose();
   }
 
+  Future<String> getUserType(String email) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .where('email', isEqualTo: email)
+          .get();
+      final querySnapshotCommerce = await FirebaseFirestore.instance
+          .collection('commerce')
+          .where('email', isEqualTo: email)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return 'user';
+      } else if (querySnapshotCommerce.docs.isNotEmpty) {
+        return 'commerce';
+      } else {
+        return 'not_found'; // Handle user not found scenario
+      }
+    } catch (err) {
+      print(err);
+      return 'error';
+    }
+  }
+
   void loginUser() async {
-    String res = await AuthMethods().loginUser(
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
+    /*String res = await AuthMethods().loginUser(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );*/
+
+    final res = await AuthMethods().loginUser(
       email: _emailController.text,
       password: _passwordController.text,
     );
 
-    if (res == 'success') {
+    try {
+      await res;
+      setState(() {
+        _isLoading = false;
+      });
+      if (res == 'success') {
+        String userType = await getUserType(_emailController.text);
+        if (userType == 'user') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const ProductsScreen(),
+            ),
+          );
+        } else if (userType == 'commerce') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AdministrationScreen(),
+            ),
+          );
+        } else {
+          print('User not found or error occurred: $userType');
+        }
+      } else {
+        // Handle login failure (e.g., show an error message)
+        print('Login failed: $res');
+      }
+    } catch (error) {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
+
+      // Handle login failure (e.g., show an error message)
+      print('Login failed: $error');
+    }
+  }
+
+  void loginUserWithGoogle() async {
+    try {
+      final userCredential = await AuthMethods().signInWithGoogle();
+
       Navigator.of(context).push(
-        MaterialPageRoute(         
+        MaterialPageRoute(
           builder: (context) => const ProductsScreen(),
         ),
       );
+
+      // Manejar el éxito del inicio de sesión (e.g., navegar a la pantalla principal)
+      print('Usuario inició sesión con Google: ${userCredential.user!.email}');
+    } catch (err) {
+      // Manejar errores generales (e.g., mostrar mensaje de error)
+      print('Error al iniciar sesión con Google: $err');
     }
   }
 
@@ -72,8 +151,39 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
               const SizedBox(
                 height: 24,
               ),
-              ElevatedButton(
-                  onPressed: loginUser, child: const Text('Ingresar')),
+              _isLoading
+                  ? const CircularProgressIndicator() // Show loading indicator
+                  : ElevatedButton(
+                      onPressed: loginUser,
+                      child: const Text('Ingresar'),
+                    ),
+              /* ElevatedButton(
+                  onPressed: loginUser, child: const Text('Ingresar')
+              ),*/
+              const SizedBox(
+                height: 24,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      onPressed: loginUserWithGoogle,
+                      child: const Text('Google')),
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const LoginPhoneFirebaseScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text('Teléfono')),
+                ],
+              ),
               Flexible(flex: 2, child: Container()),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

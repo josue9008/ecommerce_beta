@@ -1,3 +1,4 @@
+//import 'package:ecommerce_beta/presentation/widgets/shared/customs/customs.dart';
 import 'package:flutter/material.dart';
 
 import '../../../infrastructure/infrastructure.dart';
@@ -17,6 +18,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   // final TextEditingController _bioController = TextEditingController();
+  bool _isLoading = false;
   late String _selectedType = 'COMERCIO'; // Valor inicial seleccionado
 
   // Lista de opciones para el dropdown
@@ -37,9 +39,22 @@ class _SignupScreenState extends State<SignupScreen> {
     ));
   }
 
+  void showSnackbar(String message, backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor ?? Theme.of(context).primaryColor,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     void registerUser() async {
+      setState(() {
+        _isLoading = true; // Show loading indicator
+      });
       String resp = await AuthMethods().registerUser(
           email: _emailController.text,
           password: _passwordController.text,
@@ -48,13 +63,21 @@ class _SignupScreenState extends State<SignupScreen> {
           //bio: _bioController.text,
           );
 
+      setState(() {
+        _isLoading = false; // Show loading indicator
+      });
+
       if (resp == 'success') {
+        showSnackbar('Usuario creado satisfactoriamente!',
+            Theme.of(context).primaryColor);
         Navigator.of(context).push(
           MaterialPageRoute(
             //builder: (context) => const LoginScreen(),
             builder: (context) => const LoginFirebaseScreen1(),
           ),
         );
+      } else {
+        showSnackbar('Usuario no creado: $resp', Colors.red);
       }
     }
 
@@ -118,8 +141,12 @@ class _SignupScreenState extends State<SignupScreen> {
             const SizedBox(
               height: 24,
             ),
-            ElevatedButton(
-                onPressed: registerUser, child: const Text('Registar')),
+            _isLoading
+                ? const CircularProgressIndicator() // Show loading indicator
+                : ElevatedButton(
+                    onPressed: registerUser, 
+                    child: const Text('Registar')
+              ),
             Flexible(flex: 2, child: Container()),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
