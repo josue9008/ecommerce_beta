@@ -1,35 +1,44 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'dart:io'; // Importa la librería para detectar la plataforma (Android o iOS)
 
-import '../../../widgets/shared/customs/customs.dart';
+import 'package:flutter/material.dart'; // Importa el paquete de Flutter para la interfaz de usuario
+
+// Importa el paquete de permission_handler (comentar y descomentar según sea necesario)
+// Se utiliza para solicitar permisos de la cámara en caso de ser necesario para tu plataforma
+
+import 'package:qr_code_scanner/qr_code_scanner.dart'; // Importa el paquete para escanear códigos QR
+
+import '../../../widgets/shared/customs/customs.dart'; // Importa tus widgets personalizados
 
 class AdministrationScreen extends StatefulWidget {
-  static const name = 'administration_screen';
+  static const name = 'administration_screen'; // Nombre de la pantalla de administración
 
-  const AdministrationScreen({super.key});
+  const AdministrationScreen({super.key}); // Constructor
 
   @override
   State<AdministrationScreen> createState() => _AdministrationScreenState();
 }
 
 class _AdministrationScreenState extends State<AdministrationScreen> {
-  String? qrText; // To store the scanned QR code data
-  QRViewController? controller; // To control the QRView
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR'); // Unique key for QRView
+  String? qrText; // Variable para almacenar el código QR escaneado
 
-  // Handle camera resume/pause for hot reload
+  QRViewController? controller; // Controlador para el QRView
+
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR'); // Clave única para el QRView
+
+  bool showScanner = false; // Bandera para controlar la visibilidad del QRView
+
+  // Maneja la pausa/reanudación de la cámara al recargar en caliente la aplicación
   @override
   void reassemble() {
     super.reassemble();
     if (Platform.isAndroid) {
-      controller?.pauseCamera();
+      controller?.pauseCamera(); // Pausa la cámara en Android
     } else {
-      controller?.resumeCamera();
+      controller?.resumeCamera(); // Reanuda la cámara en iOS
     }
   }
 
-  // Dispose of the controller when the widget is disposed
+  // Libera el controlador cuando se descarta el widget
   @override
   void dispose() {
     controller?.dispose();
@@ -38,72 +47,75 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scaffoldKey = GlobalKey<ScaffoldState>();
+    final scaffoldKey = GlobalKey<ScaffoldState>(); // Clave para el Scaffold
 
     return Scaffold(
-      drawer: SideMenu(scaffoldKey: scaffoldKey), // Replace with your actual drawer
+      drawer: SideMenu(scaffoldKey: scaffoldKey), // Reemplazar con tu menú lateral real
       appBar: AppBar(
-        title: const Text('Administrador'),
+        title: const Text('Administrador'), // Título de la barra de la aplicación
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search_rounded),
+            onPressed: () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
+            icon: const Icon(Icons.search_rounded), // Icono de búsqueda
           )
         ],
       ),
       body: Stack(
         children: [
-          // Replace with your main administration view
-          const Center(child: Text('Eres genial!')),
-          // QRView widget positioned on top
-          QRView(
-            key: qrKey,
-            onQRViewCreated: _onQRViewCreated,
+          // Reemplaza con tu vista principal de administración
+          const Center(child: Text('Eres genial!')), // Mensaje inicial
+          Visibility(
+            visible: showScanner, // Muestra el QRView solo cuando showScanner sea true
+            child: Center(
+              child: QRView(
+                key: qrKey,
+                onQRViewCreated: _onQRViewCreated,
+                overlay: QrScannerOverlayShape(
+                  borderColor: Colors.red,
+                  borderRadius: 10,
+                  borderLength: 30,
+                  borderWidth: 10,
+                  cutOutSize: 300,
+                ),
+              ),
+            ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        label: const Text('Escanear QR'),
-        icon: const Icon(Icons.qr_code_scanner),
-        onPressed: () async {
-          // Request camera permission (optional)
-          // Uncomment if needed for your platform
-          // await Permission.camera.request();
-
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Escanear Código QR'),
-                content: QRView(
-                  key: qrKey, // Ensure key matches
-                  onQRViewCreated: _onQRViewCreated,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cerrar'),
-                  ),
-                ],
-              );
-            },
-          );
+        label: const Text('Escanear QR'), // Etiqueta del botón flotante
+        icon: const Icon(Icons.qr_code_scanner), // Icono del escáner QR
+        onPressed: () {
+          setState(() {
+            showScanner = !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
+          });
         },
       ),
     );
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    setState(() {
-      this.controller = controller;
-    });
-    
-    controller.scannedDataStream.listen((Barcode scanData) {
+void _onQRViewCreated(QRViewController controller) {
+  // Actualiza el controlador del QRView
+  setState(() {
+    this.controller = controller;
+  });
+
+  // Bandera para rastrear si se ha escaneado un código QR
+  bool _qrScanned = false;
+
+  // Escucha el stream de datos escaneados del QRView
+  controller.scannedDataStream.listen((Barcode scanData) {
+    // Verifica si qrText ya se actualizó antes de volver a actualizar
+    if (!_qrScanned) {
+      // Actualiza qrText con el código QR escaneado
       setState(() {
         qrText = scanData.code;
-        print('$qrText');
+        print('Valor: $qrText');
+        _qrScanned = true; // Indica que se ha escaneado un código QR
+        // Maneja el código QR escaneado aquí (por ejemplo, muestra un diálogo o realiza una acción)
       });
-    });
-  }
+    }
+  });
 }
 
+}
