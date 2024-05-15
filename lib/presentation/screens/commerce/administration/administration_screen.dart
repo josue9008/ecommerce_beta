@@ -10,7 +10,8 @@ import 'package:qr_code_scanner/qr_code_scanner.dart'; // Importa el paquete par
 import '../../../widgets/shared/customs/customs.dart'; // Importa tus widgets personalizados
 
 class AdministrationScreen extends StatefulWidget {
-  static const name = 'administration_screen'; // Nombre de la pantalla de administración
+  static const name =
+      'administration_screen'; // Nombre de la pantalla de administración
 
   const AdministrationScreen({super.key}); // Constructor
 
@@ -23,9 +24,13 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
 
   QRViewController? controller; // Controlador para el QRView
 
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR'); // Clave única para el QRView
+  final GlobalKey qrKey =
+      GlobalKey(debugLabel: 'QR'); // Clave única para el QRView
 
   bool showScanner = false; // Bandera para controlar la visibilidad del QRView
+
+  // Bandera para rastrear si se ha escaneado un código QR
+  bool _qrScanned = false;
 
   // Maneja la pausa/reanudación de la cámara al recargar en caliente la aplicación
   @override
@@ -50,12 +55,15 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
     final scaffoldKey = GlobalKey<ScaffoldState>(); // Clave para el Scaffold
 
     return Scaffold(
-      drawer: SideMenu(scaffoldKey: scaffoldKey), // Reemplazar con tu menú lateral real
+      drawer: SideMenu(
+          scaffoldKey: scaffoldKey), // Reemplazar con tu menú lateral real
       appBar: AppBar(
-        title: const Text('Administrador'), // Título de la barra de la aplicación
+        title:
+            const Text('Administrador'), // Título de la barra de la aplicación
         actions: [
           IconButton(
-            onPressed: () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
+            onPressed:
+                () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
             icon: const Icon(Icons.search_rounded), // Icono de búsqueda
           )
         ],
@@ -65,7 +73,8 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
           // Reemplaza con tu vista principal de administración
           const Center(child: Text('Eres genial!')), // Mensaje inicial
           Visibility(
-            visible: showScanner, // Muestra el QRView solo cuando showScanner sea true
+            visible:
+                showScanner, // Muestra el QRView solo cuando showScanner sea true
             child: Center(
               child: QRView(
                 key: qrKey,
@@ -87,35 +96,38 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
         icon: const Icon(Icons.qr_code_scanner), // Icono del escáner QR
         onPressed: () {
           setState(() {
-            showScanner = !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
+            showScanner =
+                !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
+            qrText = '';
+            _qrScanned = false;
           });
         },
       ),
     );
   }
 
-void _onQRViewCreated(QRViewController controller) {
-  // Actualiza el controlador del QRView
-  setState(() {
-    this.controller = controller;
-  });
+  void _onQRViewCreated(QRViewController controller) {
+    // Actualiza el controlador del QRView
+    setState(() {
+      this.controller = controller;
+    });
 
-  // Bandera para rastrear si se ha escaneado un código QR
-  bool _qrScanned = false;
-
-  // Escucha el stream de datos escaneados del QRView
-  controller.scannedDataStream.listen((Barcode scanData) {
-    // Verifica si qrText ya se actualizó antes de volver a actualizar
-    if (!_qrScanned) {
-      // Actualiza qrText con el código QR escaneado
-      setState(() {
-        qrText = scanData.code;
-        print('Valor: $qrText');
-        _qrScanned = true; // Indica que se ha escaneado un código QR
-        // Maneja el código QR escaneado aquí (por ejemplo, muestra un diálogo o realiza una acción)
-      });
-    }
-  });
-}
-
+    // Escucha el stream de datos escaneados del QRView
+    controller.scannedDataStream.listen((Barcode scanData) {
+      // Verifica si qrText ya se actualizó antes de volver a actualizar
+      if (!_qrScanned) {
+        // Actualiza qrText con el código QR escaneado
+        setState(() {
+          qrText = scanData.code;
+          print('Valor: $qrText');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('QR leído: ${scanData.code}'),
+            backgroundColor: Theme.of(context).primaryColor,
+          ));
+          _qrScanned = true; // Indica que se ha escaneado un código QR
+          // Maneja el código QR escaneado aquí (por ejemplo, muestra un diálogo o realiza una acción)
+        });
+      }
+    });
+  }
 }
