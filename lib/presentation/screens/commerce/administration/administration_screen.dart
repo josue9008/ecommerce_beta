@@ -12,7 +12,8 @@ import '../../../../domain/domain.dart';
 import '../../../widgets/shared/customs/customs.dart'; // Importa tus widgets personalizados
 
 class AdministrationScreen extends StatefulWidget {
-  static const name = 'administration_screen'; // Nombre de la pantalla de administración
+  static const name =
+      'administration_screen'; // Nombre de la pantalla de administración
 
   const AdministrationScreen({super.key}); // Constructor
 
@@ -34,18 +35,17 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   bool _qrScanned = false;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String currentCommerceId = '';
+  final String currentCommerceId = '';  
 
   // Función para obtener el ID del comercio actual
-Future<String?> _getcurrentCommerceId() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    return user.uid;
-  } else {
-    return null;
-  }
-}
-  // final String currentCommerceId = 'urVqgTYE9ETqS2xaSji6ciuorws2'; // Reemplaza con la forma de obtener el ID del comercio actual
+  Future<String?> _getcurrentCommerceId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return user.uid;
+    } else {
+      return null;
+    }
+  }  
 
   // Maneja la pausa/reanudación de la cámara al recargar en caliente la aplicación
   @override
@@ -85,9 +85,47 @@ Future<String?> _getcurrentCommerceId() async {
       ),
       body: Stack(
         children: [
-          // Reemplaza con tu vista principal de administración
-          const Center(child: Text('Eres genial!')
-          ),// Mensaje inicial
+          Visibility(
+            visible:
+                !showScanner,
+            child: Center(
+              child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: (FirebaseAuth.instance.currentUser?.uid != null)
+                    ? _firestore
+                        .collection('commerce')
+                        .doc(FirebaseAuth.instance.currentUser!.uid)
+                        .snapshots()
+                    : null,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final commerceData =
+                        snapshot.data!.data() as Map<String, dynamic>;
+                    final commerceDataObject =
+                        CommerceData.fromJson(commerceData);
+                    return FittedBox(
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('Correo')),
+                          DataColumn(label: Text('Puntos Acumulados')),
+                        ],
+                        rows: commerceDataObject.userPointsList
+                            .map((userPoints) => DataRow(cells: [
+                                  DataCell(Text(userPoints.userEmail)),
+                                  DataCell(Text(
+                                      userPoints.awardedPoints.toString())),
+                                ]))
+                            .toList(),
+                      ),
+                    );
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                },
+              ),
+            ),
+          ),
           Visibility(
             visible:
                 showScanner, // Muestra el QRView solo cuando showScanner sea true
@@ -129,61 +167,68 @@ Future<String?> _getcurrentCommerceId() async {
     });
 
     // Escucha el stream de datos escaneados del QRView
-    controller.scannedDataStream.listen((Barcode scanData) async{
+    controller.scannedDataStream.listen((Barcode scanData) async {
       // Verifica si qrText ya se actualizó antes de volver a actualizar
       if (!_qrScanned) {
         // Actualiza qrText con el código QR escaneado
-        setState(() {        
-
-           qrText = scanData.code;           
+        setState(() {
+          qrText = scanData.code;
           _qrScanned = true; // Indica que se ha escaneado un código QR
           // Maneja el código QR escaneado aquí (por ejemplo, muestra un diálogo o realiza una acción)
         });
 
-              // Obtiene el ID del comercio actual
-       final currentCommerceId = await _getcurrentCommerceId();
+        // Obtiene el ID del comercio actual
+        final currentCommerceId = await _getcurrentCommerceId();
 
-       if(currentCommerceId != null){
-        final userEmail = qrText;
-         final commerceDocRef = _firestore.collection('commerce').doc(currentCommerceId);
-         final commerceDocSnapshot = await commerceDocRef.get();
+        if (currentCommerceId != null) {
+          final userEmail = qrText;
+          final commerceDocRef =
+              _firestore.collection('commerce').doc(currentCommerceId);
+          final commerceDocSnapshot = await commerceDocRef.get();
 
-        if (commerceDocSnapshot.exists) {
-          final commerceData = CommerceData.fromJson(commerceDocSnapshot.data()!);
-          final existingUser = commerceData.userPointsList.any((up) => up.userEmail == userEmail);
+          if (commerceDocSnapshot.exists) {
+            final commerceData =
+                CommerceData.fromJson(commerceDocSnapshot.data()!);
+            final existingUser = commerceData.userPointsList
+                .any((up) => up.userEmail == userEmail);
 
-          if (existingUser) {
-            final updatedUserPointsList = [...commerceData.userPointsList];
-            final existingUserPoints = updatedUserPointsList.firstWhere((up) => up.userEmail == userEmail);
-            existingUserPoints.awardedPoints += 10;
+            if (existingUser) {
+              final updatedUserPointsList = [...commerceData.userPointsList];
+              final existingUserPoints = updatedUserPointsList
+                  .firstWhere((up) => up.userEmail == userEmail);
+              existingUserPoints.awardedPoints += 10;
 
-            await commerceDocRef.update({
-              'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
-            });
-             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Se han adicionado 10 puntos más a $userEmail en este comercio'),
-                backgroundColor: Theme.of(context).primaryColor,
-              ),
-            );
-          } else {
-            final updatedUserPointsList = [...commerceData.userPointsList];
-            updatedUserPointsList.add(UserPoints(userEmail: userEmail ?? '', awardedPoints: 10));
+              await commerceDocRef.update({
+                'userPointsList':
+                    updatedUserPointsList.map((up) => up.toJson()).toList(),
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      'Se han adicionado 10 puntos más a $userEmail en este comercio'),
+                  backgroundColor: Theme.of(context).primaryColor,
+                ),
+              );
+            } else {
+              final updatedUserPointsList = [...commerceData.userPointsList];
+              updatedUserPointsList.add(
+                  UserPoints(userEmail: userEmail ?? '', awardedPoints: 10));
 
-            await commerceDocRef.update({
-              'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
-            });
-             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Se han adicionado 10 puntos a $userEmail en este comercio'),
-                backgroundColor: Theme.of(context).primaryColor,
-              ),
-            );
+              await commerceDocRef.update({
+                'userPointsList':
+                    updatedUserPointsList.map((up) => up.toJson()).toList(),
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      'Se han adicionado 10 puntos a $userEmail en este comercio'),
+                  backgroundColor: Theme.of(context).primaryColor,
+                ),
+              );
+            }
           }
         }
-       }         
       }
-    }
-  );
+    });
   }
 }

@@ -10,7 +10,7 @@ class ProductsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scaffoldKey = GlobalKey<ScaffoldState>();
-    final _qrDataController = TextEditingController(); // Controlador del TextField
+    //final _qrDataController = TextEditingController(); // Controlador del TextField
 
     return Scaffold(
       drawer: SideMenu(scaffoldKey: scaffoldKey),
@@ -27,23 +27,12 @@ class ProductsScreen extends StatelessWidget {
         onPressed: () async {
            final user = FirebaseAuth.instance.currentUser;
             if (user != null) {
-            final qrData = user.email;
-            print('Valor: ${qrData}');
+            final qrData = user.email;           
             if (qrData != null) {
               showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  //title: const Text('Código QR'),
+                builder: (context) => AlertDialog(                  
                   content: QRCode(qrData: qrData),
-                 
-                  /*actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Cerrar'),
-                    ),
-                  ],*/
                 ),
               );
             }
