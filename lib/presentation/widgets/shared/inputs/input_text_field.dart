@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class InputTextField extends StatelessWidget {
+class InputTextField extends StatefulWidget {
   const InputTextField({
     super.key,
     required this.hintText,
@@ -9,27 +9,51 @@ class InputTextField extends StatelessWidget {
     this.isPass = false,
   });
 
- final String hintText;
- final TextInputType textInputType;
- final bool isPass;
- final TextEditingController textEditingController;
+  final String hintText;
+  final TextInputType textInputType;
+  final bool isPass;
+  final TextEditingController textEditingController;
+
+  @override
+  State<InputTextField> createState() => _InputTextFieldState();
+}
+
+class _InputTextFieldState extends State<InputTextField> {
+  bool _showPassword = true;
 
   @override
   Widget build(BuildContext context) {
     final inputBorder = OutlineInputBorder(
-          borderSide: Divider.createBorderSide(context)
+      borderSide: Divider.createBorderSide(context),
     );
-    return TextField(
-      controller: textEditingController,
-      decoration: InputDecoration(
-        hintText: hintText,
-        border: inputBorder ,
-        enabledBorder: inputBorder,
-        filled: true,
-        contentPadding: const EdgeInsets.all(8)
-      ),
-      keyboardType: textInputType,
-      obscureText: isPass,
+    return Row( // Use Row for more control over layout (optional)
+      children: [
+        Expanded(
+          child: TextField(
+            controller: widget.textEditingController,
+            decoration: InputDecoration(
+              hintText: widget.hintText,
+              border: inputBorder,
+              enabledBorder: inputBorder,
+              filled: true,
+              contentPadding: const EdgeInsets.all(8),
+              suffixIcon: widget.isPass // Conditionally show IconButton
+                  ? IconButton(
+                      icon: Icon(
+                          _showPassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
+                    )
+                  : null,
+            ),
+            keyboardType: widget.textInputType,
+            obscureText: widget.isPass ? _showPassword : false,
+          ),
+        ),
+      ],
     );
   }
 }

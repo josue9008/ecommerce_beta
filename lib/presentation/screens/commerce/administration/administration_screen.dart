@@ -1,17 +1,18 @@
 import 'dart:io'; // Importa la librería para detectar la plataforma (Android o iOS)
 
 import 'package:flutter/material.dart'; // Importa el paquete de Flutter para la interfaz de usuario
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // Importa el paquete de permission_handler (comentar y descomentar según sea necesario)
 // Se utiliza para solicitar permisos de la cámara en caso de ser necesario para tu plataforma
 
 import 'package:qr_code_scanner/qr_code_scanner.dart'; // Importa el paquete para escanear códigos QR
 
+import '../../../../domain/domain.dart';
 import '../../../widgets/shared/customs/customs.dart'; // Importa tus widgets personalizados
 
 class AdministrationScreen extends StatefulWidget {
-  static const name =
-      'administration_screen'; // Nombre de la pantalla de administración
+  static const name = 'administration_screen'; // Nombre de la pantalla de administración
 
   const AdministrationScreen({super.key}); // Constructor
 
@@ -31,6 +32,20 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
 
   // Bandera para rastrear si se ha escaneado un código QR
   bool _qrScanned = false;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String currentCommerceId = '';
+
+  // Función para obtener el ID del comercio actual
+Future<String?> _getcurrentCommerceId() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    return user.uid;
+  } else {
+    return null;
+  }
+}
+  // final String currentCommerceId = 'urVqgTYE9ETqS2xaSji6ciuorws2'; // Reemplaza con la forma de obtener el ID del comercio actual
 
   // Maneja la pausa/reanudación de la cámara al recargar en caliente la aplicación
   @override
@@ -71,7 +86,8 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
       body: Stack(
         children: [
           // Reemplaza con tu vista principal de administración
-          const Center(child: Text('Eres genial!')), // Mensaje inicial
+          const Center(child: Text('Eres genial!')
+          ),// Mensaje inicial
           Visibility(
             visible:
                 showScanner, // Muestra el QRView solo cuando showScanner sea true
@@ -113,21 +129,61 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
     });
 
     // Escucha el stream de datos escaneados del QRView
-    controller.scannedDataStream.listen((Barcode scanData) {
+    controller.scannedDataStream.listen((Barcode scanData) async{
       // Verifica si qrText ya se actualizó antes de volver a actualizar
       if (!_qrScanned) {
         // Actualiza qrText con el código QR escaneado
-        setState(() {
-          qrText = scanData.code;
-          print('Valor: $qrText');
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('QR leído: ${scanData.code}'),
-            backgroundColor: Theme.of(context).primaryColor,
-          ));
+        setState(() {        
+
+           qrText = scanData.code;           
           _qrScanned = true; // Indica que se ha escaneado un código QR
           // Maneja el código QR escaneado aquí (por ejemplo, muestra un diálogo o realiza una acción)
         });
+
+              // Obtiene el ID del comercio actual
+       final currentCommerceId = await _getcurrentCommerceId();
+
+       if(currentCommerceId != null){
+        final userEmail = qrText;
+         final commerceDocRef = _firestore.collection('commerce').doc(currentCommerceId);
+         final commerceDocSnapshot = await commerceDocRef.get();
+
+        if (commerceDocSnapshot.exists) {
+          final commerceData = CommerceData.fromJson(commerceDocSnapshot.data()!);
+          final existingUser = commerceData.userPointsList.any((up) => up.userEmail == userEmail);
+
+          if (existingUser) {
+            final updatedUserPointsList = [...commerceData.userPointsList];
+            final existingUserPoints = updatedUserPointsList.firstWhere((up) => up.userEmail == userEmail);
+            existingUserPoints.awardedPoints += 10;
+
+            await commerceDocRef.update({
+              'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
+            });
+             ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Se han adicionado 10 puntos más a $userEmail en este comercio'),
+                backgroundColor: Theme.of(context).primaryColor,
+              ),
+            );
+          } else {
+            final updatedUserPointsList = [...commerceData.userPointsList];
+            updatedUserPointsList.add(UserPoints(userEmail: userEmail ?? '', awardedPoints: 10));
+
+            await commerceDocRef.update({
+              'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
+            });
+             ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Se han adicionado 10 puntos a $userEmail en este comercio'),
+                backgroundColor: Theme.of(context).primaryColor,
+              ),
+            );
+          }
+        }
+       }         
       }
-    });
+    }
+  );
   }
 }

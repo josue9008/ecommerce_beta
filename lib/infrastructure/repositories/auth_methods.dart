@@ -23,18 +23,33 @@ class AuthMethods {
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
             email: email, password: password);
 
-        UserData userData = UserData(
-          email: email,
-          uid: cred.user!.uid,
-          userName: userName,
-          userType: userType,
-        );
+        if (userType == 'COMERCIO') {
+          CommerceData commerceData = CommerceData(
+              email: email,
+              uid: cred.user!.uid,
+              userName: userName,
+              userType: userType,
+              userPointsList: []);
+          await _fireStore.collection('commerce').doc(cred.user!.uid).set(
+                commerceData.toJson(),
+              );
+        } else {
+          UserData userData = UserData(
+            email: email,
+            uid: cred.user!.uid,
+            userName: userName,
+            userType: userType,
+          );
+          await _fireStore.collection('user').doc(cred.user!.uid).set(
+                userData.toJson(),
+              );
+        }
 
-        String collection = userType == 'COMERCIO' ? 'commerce' : 'user';
+        //String collection = userType == 'COMERCIO' ? 'commerce' : 'user';
 
-        await _fireStore.collection(collection).doc(cred.user!.uid).set(
-              userData.toJson(),
-            );
+        //await _fireStore.collection(collection).doc(cred.user!.uid).set(
+        //   userData.toJson(),
+        // );
         resp = 'success';
       }
     } catch (err) {
@@ -78,12 +93,10 @@ class AuthMethods {
 
         return userCredential;
       } else {
-        print('Inicio de sesión con Google cancelado');
         return Future.error(
             'Inicio de sesión cancelado'); // Manejar cancelación del inicio de sesión
       }
     } catch (err) {
-      print('Error al iniciar sesión con Google: $err');
       return Future.error(
           'Error al iniciar sesión'); // Manejar errores de inicio de sesión
     }

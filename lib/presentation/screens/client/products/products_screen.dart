@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ecommerce_beta/presentation/widgets/widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart'; 
 
 class ProductsScreen extends StatelessWidget {
   static const name = 'products_screen';
@@ -24,7 +25,30 @@ class ProductsScreen extends StatelessWidget {
         label: const Text('Generar QR'),
         icon: const Icon(Icons.qr_code),
         onPressed: () async {
-          final result = await showDialog<String>(
+           final user = FirebaseAuth.instance.currentUser;
+            if (user != null) {
+            final qrData = user.email;
+            print('Valor: ${qrData}');
+            if (qrData != null) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  //title: const Text('Código QR'),
+                  content: QRCode(qrData: qrData),
+                 
+                  /*actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Cerrar'),
+                    ),
+                  ],*/
+                ),
+              );
+            }
+          }
+         /* final result = await showDialog<String>(
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Ingresa el contenido del código QR'),
@@ -68,7 +92,7 @@ class ProductsScreen extends StatelessWidget {
                 ),
               );
             }
-          }
+          }*/
         },
       ),
     );

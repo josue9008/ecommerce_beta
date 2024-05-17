@@ -20,3 +20,63 @@ class UserData{
   };
 
 }
+
+class CommerceData{
+  final String email;
+  final String uid;
+  final String userName;
+  final String userType;
+  final List<UserPoints> userPointsList;
+
+  CommerceData({
+   required this.email, 
+   required this.uid, 
+   required this.userName,
+   required this.userType,
+   required this.userPointsList,
+  });
+   
+     factory CommerceData.fromJson(Map<String, dynamic> json) {
+    return CommerceData(
+      email: json['email'] ?? '',
+      uid: json['uid'] ?? '',
+      userName: json['username'] ?? '',
+      userType: json['userType'] ?? '',
+      userPointsList: (json['userPointsList'] as List?)
+              ?.map((pointData) => UserPoints.fromJson(pointData))
+              .toList() ??
+          [],
+    );
+  }  
+
+   Map<String, dynamic> toJson() => { 
+    "username": userName,
+    "uid": uid,
+    "email": email,
+    "userType": userType,
+    "userPointsList": userPointsList.map((up) => up.toJson()).toList(),
+  };
+
+}
+
+class UserPoints {
+  final String userEmail;
+  int awardedPoints;
+
+  UserPoints({
+    required this.userEmail,
+    required this.awardedPoints,
+  });
+
+  factory UserPoints.fromJson(Map<String, dynamic> json) {
+    return UserPoints(
+      userEmail: json['userEmail'] ?? '',
+      awardedPoints: json['awardedPoints'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "userEmail": userEmail,
+    "awardedPoints": awardedPoints,
+  };
+}
