@@ -7,12 +7,14 @@ class InputTextField extends StatefulWidget {
     required this.textInputType,
     required this.textEditingController,
     this.isPass = false,
+     this.onChanged,
   });
 
   final String hintText;
   final TextInputType textInputType;
   final bool isPass;
   final TextEditingController textEditingController;
+  final Function(String)? onChanged;
 
   @override
   State<InputTextField> createState() => _InputTextFieldState();
@@ -51,6 +53,7 @@ class _InputTextFieldState extends State<InputTextField> {
             ),
             keyboardType: widget.textInputType,
             obscureText: widget.isPass ? _showPassword : false,
+            onChanged: widget.onChanged,
           ),
         ),
       ],

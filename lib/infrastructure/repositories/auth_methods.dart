@@ -29,7 +29,8 @@ class AuthMethods {
               uid: cred.user!.uid,
               userName: userName,
               userType: userType,
-              userPointsList: []);
+              userPointsList: [],
+              campaigns: []);
           await _fireStore.collection('commerce').doc(cred.user!.uid).set(
                 commerceData.toJson(),
               );
@@ -100,5 +101,77 @@ class AuthMethods {
       return Future.error(
           'Error al iniciar sesión'); // Manejar errores de inicio de sesión
     }
+  }
+
+  Future<void> addCampaignToCommerce(
+      String commerceId, Campaign campaign) async {
+    try {
+      final commerceDocRef = _fireStore.collection('commerce').doc(commerceId);
+      final commerceDocSnapshot = await commerceDocRef.get();
+
+      if (commerceDocSnapshot.exists) {
+        final commerceData = CommerceData.fromJson(commerceDocSnapshot.data()!);
+
+        final updatedCampaignsList = [...commerceData.campaigns, campaign];
+
+        await commerceDocRef.update({
+          'campaigns': updatedCampaignsList.map((c) => c.toJson()).toList(),
+        });
+      }
+    } catch (e) {
+      print("Error adding campaign to commerce: $e");
+    }
+  }
+
+  Future<void> updateCampaignInCommerce(
+      String commerceId, Campaign updatedCampaign) async {
+    try {
+      final commerceDocRef = _fireStore.collection('commerce').doc(commerceId);
+      final commerceDocSnapshot = await commerceDocRef.get();
+
+      if (commerceDocSnapshot.exists) {
+        List<Campaign> campaigns =
+            CommerceData.fromJson(commerceDocSnapshot.data()!).campaigns;
+
+        int index = campaigns.indexWhere((c) => c.id == updatedCampaign.id);
+        if (index != -1) {
+          campaigns[index] = updatedCampaign;
+          await commerceDocRef
+              .update({'campaigns': campaigns.map((c) => c.toJson()).toList()});
+        } else {
+          print("Campaign not found");
+        }
+      } else {
+        print("Commerce document does not exist");
+      }
+    } catch (e) {
+      print("Error updating campaign: $e");
+    }
+  }
+
+  Future<void> deleteCampaignFromCommerce(
+      String commerceId, String campaignId) async {
+    final commerceDocRef = _fireStore.collection('commerce').doc(commerceId);
+    final commerceDocSnapshot = await commerceDocRef.get();
+
+    if (commerceDocSnapshot.exists) {
+      final commerceData = CommerceData.fromJson(commerceDocSnapshot.data()!);
+      final updatedCampaigns = commerceData.campaigns
+          .where((campaign) => campaign.id != campaignId)
+          .toList();
+
+      await commerceDocRef.update({
+        'campaigns':
+            updatedCampaigns.map((campaign) => campaign.toJson()).toList(),
+      });
+    }
+  }
+
+  Future<List<CommerceData>> getCommerceData() async {
+    final QuerySnapshot snapshot =
+        await _fireStore.collection('commerce').get();
+    return snapshot.docs
+        .map((doc) => CommerceData.fromJson(doc.data() as Map<String, dynamic>))
+        .toList();
   }
 }

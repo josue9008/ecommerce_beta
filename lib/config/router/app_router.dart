@@ -52,7 +52,12 @@ final appRouter = GoRouter(
       path: '/administration',
       name: AdministrationScreen.name,
       builder: (context, state) => const AdministrationScreen(),
-    ), 
+    ),
+    /* GoRoute(
+      path: '/administration-campaign',
+      name: AdministratorCampaign.name,
+      builder: (context, state) => const AdministratorCampaign(),
+    ), */
     ], 
 );
 

@@ -1,4 +1,4 @@
-
+import '../domain.dart';
 class UserData{
   final String email;
   final String uid;
@@ -6,7 +6,7 @@ class UserData{
   final String userType;
 
   UserData({
-   required this.email, 
+   required this.email,
    required this.uid, 
    required this.userName,
    required this.userType
@@ -21,22 +21,24 @@ class UserData{
 
 }
 
-class CommerceData{
+class CommerceData {
   final String email;
   final String uid;
   final String userName;
   final String userType;
   final List<UserPoints> userPointsList;
+  final List<Campaign> campaigns; // Nueva lista de campañas
 
   CommerceData({
-   required this.email, 
-   required this.uid, 
-   required this.userName,
-   required this.userType,
-   required this.userPointsList,
+    required this.email,
+    required this.uid,
+    required this.userName,
+    required this.userType,
+    required this.userPointsList,
+    required this.campaigns,
   });
-   
-     factory CommerceData.fromJson(Map<String, dynamic> json) {
+
+  factory CommerceData.fromJson(Map<String, dynamic> json) {
     return CommerceData(
       email: json['email'] ?? '',
       uid: json['uid'] ?? '',
@@ -46,17 +48,21 @@ class CommerceData{
               ?.map((pointData) => UserPoints.fromJson(pointData))
               .toList() ??
           [],
+      campaigns: (json['campaigns'] as List?)
+              ?.map((campaignData) => Campaign.fromJson(campaignData))
+              .toList() ??
+          [],
     );
-  }  
+  }
 
-   Map<String, dynamic> toJson() => { 
-    "username": userName,
-    "uid": uid,
-    "email": email,
-    "userType": userType,
-    "userPointsList": userPointsList.map((up) => up.toJson()).toList(),
-  };
-
+  Map<String, dynamic> toJson() => {
+        "username": userName,
+        "uid": uid,
+        "email": email,
+        "userType": userType,
+        "userPointsList": userPointsList.map((up) => up.toJson()).toList(),
+        "campaigns": campaigns.map((c) => c.toJson()).toList(),
+      };
 }
 
 class UserPoints {
