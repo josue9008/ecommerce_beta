@@ -101,7 +101,32 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
     }
   }
 
-  void loginUserWithGoogle() async {
+   Future<void> loginUserWithGoogle() async {
+    try {
+      final userCredential = await AuthMethods().signInWithGoogle(context);
+
+      final String email = userCredential.user!.email!;
+      final String userType = await getUserType(email);
+
+      if (userType == 'user') {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const ProductsScreen(),
+          ),
+        );
+      } else if (userType == 'commerce') {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const AdministrationScreen(),
+          ),
+        );
+      }
+    } catch (err) {
+      print('Error al iniciar sesión con Google: $err');
+    }
+  }
+
+  /*void loginUserWithGoogle() async {
     try {
       final userCredential = await AuthMethods().signInWithGoogle();
 
@@ -117,7 +142,7 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
       // Manejar errores generales (e.g., mostrar mensaje de error)
       print('Error al iniciar sesión con Google: $err');
     }
-  }
+  }*/
 
   void navigateSignup() {
     Navigator.of(context).push(MaterialPageRoute(
