@@ -163,7 +163,9 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
               InputTextField(
                   textEditingController: _emailController,
                   hintText: 'Email',
-                  textInputType: TextInputType.emailAddress),
+                  textInputType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(Icons.email),
+              ),
               const SizedBox(
                 height: 24,
               ),
@@ -172,6 +174,7 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                 hintText: 'Password',
                 textInputType: TextInputType.text,
                 isPass: true,
+                prefixIcon: const Icon(Icons.password),
               ),
               const SizedBox(
                 height: 24,

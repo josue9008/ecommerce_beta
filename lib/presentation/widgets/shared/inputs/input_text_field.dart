@@ -8,6 +8,7 @@ class InputTextField extends StatefulWidget {
     required this.textEditingController,
     this.isPass = false,
      this.onChanged,
+     this.prefixIcon,
   });
 
   final String hintText;
@@ -15,6 +16,7 @@ class InputTextField extends StatefulWidget {
   final bool isPass;
   final TextEditingController textEditingController;
   final Function(String)? onChanged;
+  final Icon? prefixIcon;
 
   @override
   State<InputTextField> createState() => _InputTextFieldState();
@@ -39,6 +41,7 @@ class _InputTextFieldState extends State<InputTextField> {
               enabledBorder: inputBorder,
               filled: true,
               contentPadding: const EdgeInsets.all(8),
+              prefixIcon: widget.prefixIcon,
               suffixIcon: widget.isPass // Conditionally show IconButton
                   ? IconButton(
                       icon: Icon(

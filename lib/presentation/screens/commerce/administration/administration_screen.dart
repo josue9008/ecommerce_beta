@@ -9,7 +9,6 @@ import 'package:qr_code_scanner/qr_code_scanner.dart'; // Importa el paquete par
 import '../../../../domain/domain.dart';
 import '../../../widgets/shared/customs/customs.dart';
 import '../commerce.dart'; // Importa tus widgets personalizados
-// Importa la página de administración de productos
 
 class AdministrationScreen extends StatefulWidget {
   static const name = 'administration_screen'; // Nombre de la pantalla de administración
@@ -21,21 +20,15 @@ class AdministrationScreen extends StatefulWidget {
 }
 
 class _AdministrationScreenState extends State<AdministrationScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? qrText; // Variable para almacenar el código QR escaneado
   QRViewController? controller; // Controlador para el QRView
-  final GlobalKey qrKey =
-      GlobalKey(debugLabel: 'QR'); // Clave única para el QRView
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR'); // Clave única para el QRView
   bool showScanner = false; // Bandera para controlar la visibilidad del QRView
-  bool _qrScanned =
-      false; // Bandera para rastrear si se ha escaneado un código QR
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool _qrScanned = false; // Bandera para rastrear si se ha escaneado un código QR 
   int selectedIndex = 0; // Índice para controlar la pantalla seleccionada
   String? commerceId; // Variable para almacenar el commerceId
-
-  // Lista de pantallas a mostrar en el Stack
- /* final List<Widget> _screens = [
-    const AdministratorCampaign(), // Añade la página de administración de productos
-  ];*/
+  String? userName; // Variable para almacenar el nombre del usuario
 
   // Lista de pantallas a mostrar en el Stack
   List<Widget> _screens = [];
@@ -46,8 +39,9 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
     _initializeScreens();
   }
 
-    Future<void> _initializeScreens() async {
-    commerceId = await _getcurrentCommerceId();
+  Future<void> _initializeScreens() async {
+    commerceId = await _getCurrentCommerceId();
+    await _getUserName(); // Obtiene el nombre del usuario al inicializar la pantalla
     if (commerceId != null) {
       setState(() {
         _screens = [
@@ -58,12 +52,25 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   }
 
   // Función para obtener el ID del comercio actual
-  Future<String?> _getcurrentCommerceId() async {
+  Future<String?> _getCurrentCommerceId() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       return user.uid;
     } else {
       return null;
+    }
+  }
+
+  // Función para obtener el nombre del usuario actual
+  Future<void> _getUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await _firestore.collection('commerce').doc(user.uid).get(); // Asegúrate de que la colección sea la correcta
+      if (userDoc.exists) {
+        setState(() {
+          userName = userDoc.data()?['username']; // Asegúrate de que el campo sea el correcto
+        });
+      }
     }
   }
 
@@ -101,23 +108,22 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
         },
       ),
       appBar: AppBar(
-        title:
-            const Text('Administrador'), // Título de la barra de la aplicación
+        title: Text(
+          _getFirstName(userName) ?? 'Administrador',
+        ), // Muestra el primer nombre del usuario o 'Administrador' si no está disponible
         actions: [
           IconButton(
             icon: const Icon(Icons.qr_code_scanner),
             onPressed: () {
               setState(() {
-                showScanner =
-                    !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
+                showScanner = !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
                 qrText = '';
                 _qrScanned = false;
               });
             },
           ),
           IconButton(
-            onPressed:
-                () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
+            onPressed: () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
             icon: const Icon(Icons.search_rounded), // Icono de búsqueda
           )
         ],
@@ -130,11 +136,9 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
           ),
           AnimatedOpacity(
             opacity: showScanner ? 1.0 : 0.0, // Controla la opacidad
-            duration:
-                const Duration(milliseconds: 1000), // Duración de la animación
+            duration: const Duration(milliseconds: 1000), // Duración de la animación
             child: Visibility(
-              visible:
-                  showScanner, // Muestra el QRView solo cuando showScanner sea true
+              visible: showScanner, // Muestra el QRView solo cuando showScanner sea true
               child: Center(
                 child: QRView(
                   key: qrKey,
@@ -155,6 +159,14 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
     );
   }
 
+  String? _getFirstName(String? fullName) {
+    if (fullName == null) {
+      return null;
+    }
+    final names = fullName.split(' ');
+    return names.isNotEmpty ? names[0] : null;
+  }
+
   void _onQRViewCreated(QRViewController controller) {
     // Actualiza el controlador del QRView
     setState(() {
@@ -173,50 +185,41 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
         });
 
         // Obtiene el ID del comercio actual
-        final currentCommerceId = await _getcurrentCommerceId();
+        final currentCommerceId = await _getCurrentCommerceId();
 
         if (currentCommerceId != null) {
           final userEmail = qrText;
-          final commerceDocRef =
-              _firestore.collection('commerce').doc(currentCommerceId);
+          final commerceDocRef = _firestore.collection('commerce').doc(currentCommerceId);
           final commerceDocSnapshot = await commerceDocRef.get();
 
           if (commerceDocSnapshot.exists) {
-            final commerceData =
-                CommerceData.fromJson(commerceDocSnapshot.data()!);
-            final existingUser = commerceData.userPointsList
-                .any((up) => up.userEmail == userEmail);
+            final commerceData = CommerceData.fromJson(commerceDocSnapshot.data()!);
+            final existingUser = commerceData.userPointsList.any((up) => up.userEmail == userEmail);
 
             if (existingUser) {
               final updatedUserPointsList = [...commerceData.userPointsList];
-              final existingUserPoints = updatedUserPointsList
-                  .firstWhere((up) => up.userEmail == userEmail);
+              final existingUserPoints = updatedUserPointsList.firstWhere((up) => up.userEmail == userEmail);
               existingUserPoints.awardedPoints += 10;
 
               await commerceDocRef.update({
-                'userPointsList':
-                    updatedUserPointsList.map((up) => up.toJson()).toList(),
+                'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                      'Se han adicionado 10 puntos más a $userEmail en este comercio'),
+                  content: Text('Se han adicionado 10 puntos más a $userEmail en este comercio'),
                   backgroundColor: Theme.of(context).primaryColor,
                 ),
               );
             } else {
               final updatedUserPointsList = [...commerceData.userPointsList];
-              updatedUserPointsList.add(
-                  UserPoints(userEmail: userEmail ?? '', awardedPoints: 10));
+              updatedUserPointsList.add(UserPoints(userEmail: userEmail ?? '', awardedPoints: 10));
 
               await commerceDocRef.update({
-                'userPointsList':
-                    updatedUserPointsList.map((up) => up.toJson()).toList(),
+                'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                      'Se han adicionado 10 puntos a $userEmail en este comercio'),
+                  content: Text('Se han adicionado 10 puntos a $userEmail en este comercio'),
                   backgroundColor: Theme.of(context).primaryColor,
                 ),
               );
