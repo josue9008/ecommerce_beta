@@ -389,7 +389,4 @@ void _deleteCampaign(Campaign campaign) {
     },
   );
 }
-
-
-
 }
