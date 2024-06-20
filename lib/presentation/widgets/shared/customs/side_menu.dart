@@ -67,14 +67,14 @@ class SideMenu extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
             child: Text('Configuración', style: TextStyle(fontSize: 16)),
           ),
-          ListTile(
+         /* ListTile(
             leading: Icon(Icons.settings),
             title: Text('Ajustes'),
             onTap: () {
               onDestinationSelected(2);
               scaffoldKey.currentState?.closeDrawer();
             },
-          ),
+          ),*/
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Cerrar Sesión'),

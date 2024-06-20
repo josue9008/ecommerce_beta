@@ -102,13 +102,19 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
         userType: 'COMERCIO',
         onDestinationSelected: (int index) {
           setState(() {
+            // Cerrar el lector QR si está abierto
+            if (showScanner) {
+              controller?.stopCamera();
+              showScanner = false;
+              _qrScanned = false;
+            }
             selectedIndex = index;
           });
         },
       ),
       appBar: AppBar(
         title: Text(
-          _getFirstName(userName) ?? 'Administrador',
+          _getFirstName(userName) ?? 'Comercio',
         ), // Muestra el primer nombre del usuario o 'Administrador' si no está disponible
         actions: [
           IconButton(

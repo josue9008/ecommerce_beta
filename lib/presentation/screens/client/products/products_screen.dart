@@ -194,7 +194,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         },
       ),
       appBar: AppBar(
-        title: Text(userName ?? 'Productos'),
+        title: Text(userName ?? 'Usuario'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
