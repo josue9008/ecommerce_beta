@@ -17,6 +17,7 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   double _containerHeight = 0;
   String _errorMessage = '';
   bool _showErrorMessage = false;
@@ -193,8 +194,29 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                           FadeInUp(
                             duration: const Duration(milliseconds: 1600),
                             child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    strokeWidth: 2,
+                                ? Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 40, vertical: 15),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(50),
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.blue.shade200,
+                                          Colors.blue.shade300,
+                                          Colors.blue.shade400,
+                                        ],
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                   )
                                 : Container(
                                     decoration: BoxDecoration(
@@ -236,37 +258,67 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                               Expanded(
                                 child: FadeInUp(
                                   duration: const Duration(milliseconds: 1800),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(50),
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.blue.shade200,
-                                          Colors.blue.shade300,
-                                          Colors.blue.shade400,
-                                        ],
-                                      ),
-                                    ),
-                                    child: ElevatedButton(
-                                      onPressed: loginUserWithGoogle,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent,
-                                        shadowColor: Colors.transparent,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
+                                  child: _isGoogleLoading
+                                      ? Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 40, vertical: 15),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(50),
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.blue.shade200,
+                                                Colors.blue.shade300,
+                                                Colors.blue.shade400,
+                                              ],
+                                            ),
+                                          ),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(50),
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.blue.shade200,
+                                                Colors.blue.shade300,
+                                                Colors.blue.shade400,
+                                              ],
+                                            ),
+                                          ),
+                                          child: ElevatedButton(
+                                            onPressed: loginUserWithGoogle,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              shadowColor: Colors.transparent,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(50),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 40,
+                                                      vertical: 15),
+                                            ),
+                                            child: const Text(
+                                              "Google",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
                                         ),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 40, vertical: 15),
-                                      ),
-                                      child: const Text(
-                                        "Google",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
                                 ),
                               ),
                               const SizedBox(
@@ -314,36 +366,34 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                                     ),
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                           const SizedBox(
-                            height: 40,
+                            height: 20,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: const Text('¿No tienes una cuenta?  '),
+                            children: <Widget>[
+                              const Text(
+                                "No tienes una cuenta?",
+                                style: TextStyle(color: Colors.grey),
                               ),
                               GestureDetector(
                                 onTap: navigateSignup,
-                                child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 10),
-                                  child: const Text(
-                                    'Crear cuenta',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(
-                                          0xFF64B5F6), // Cambia el color aquí
-                                    ),
+                                child: const Text(
+                                  " Regístrate",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(
+                                        0xff1e81b0), // Color personalizado
                                   ),
                                 ),
                               ),
                             ],
+                          ),
+                          SizedBox(
+                            height: isKeyboardVisible ? 30 : 100,
                           ),
                         ],
                       ),
@@ -384,7 +434,7 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
 
   void loginUser() async {
     setState(() {
-      _isLoading = true; // Show loading indicator
+      _isLoading = true; // Show loading indicator for normal login
       _errorMessage = ''; // Clear previous error message
       _showErrorMessage = false;
     });
@@ -396,9 +446,6 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
 
     try {
       await res;
-      setState(() {
-        _isLoading = false;
-      });
       if (res == 'success') {
         String userType = await getUserType(_emailController.text);
         if (userType == 'user') {
@@ -415,9 +462,20 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
           );
         } else {
           print('User not found or error occurred: $userType');
+          setState(() {
+            _isLoading = false; // Hide loading indicator if user not found
+            _errorMessage = 'Usuario o contraseña incorrecta, verifique';
+            _showErrorMessage = true;
+          });
+          Future.delayed(const Duration(seconds: 3), () {
+            setState(() {
+              _showErrorMessage = false; // Hide the error message smoothly
+            });
+          });
         }
       } else {
         setState(() {
+          _isLoading = false; // Hide loading indicator
           _errorMessage = 'Usuario o contraseña incorrecta, verifique';
           _showErrorMessage = true;
         });
@@ -445,6 +503,12 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
   }
 
   Future<void> loginUserWithGoogle() async {
+    setState(() {
+      _isGoogleLoading = true; // Show loading indicator for Google login
+      _errorMessage = ''; // Clear previous error message
+      _showErrorMessage = false;
+    });
+
     try {
       final userCredential = await AuthMethods().signInWithGoogle(context);
 
@@ -463,10 +527,23 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
             builder: (context) => const AdministrationScreen(),
           ),
         );
+      } else {
+        print('User not found or error occurred: $userType');
+        setState(() {
+          _isGoogleLoading = false; // Hide loading indicator if user not found
+          _errorMessage = 'Usuario o contraseña incorrecta, verifique';
+          _showErrorMessage = true;
+        });
+        Future.delayed(const Duration(seconds: 3), () {
+          setState(() {
+            _showErrorMessage = false; // Hide the error message smoothly
+          });
+        });
       }
     } catch (err) {
       print('Error al iniciar sesión con Google: $err');
       setState(() {
+        _isGoogleLoading = false; // Hide loading indicator
         _errorMessage = 'Error al iniciar sesión con Google, intente de nuevo';
         _showErrorMessage = true;
       });
