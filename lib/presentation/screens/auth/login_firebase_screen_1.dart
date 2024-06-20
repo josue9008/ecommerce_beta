@@ -18,6 +18,8 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   double _containerHeight = 0;
+  String _errorMessage = '';
+  bool _showErrorMessage = false;
 
   void updateContainerHeight(bool isKeyboardVisible) {
     setState(() {
@@ -38,11 +40,15 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-              gradient: LinearGradient(begin: Alignment.topCenter, colors: [
-            Colors.blue.shade200,
-            Colors.blue.shade300,
-            Colors.blue.shade400,
-          ])),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              colors: [
+                Colors.blue.shade200,
+                Colors.blue.shade300,
+                Colors.blue.shade400,
+              ],
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -62,13 +68,13 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 FadeInUp(
-                                    duration:
-                                        const Duration(milliseconds: 1000),
-                                    child: const Text(
-                                      "Bienvenido",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 40),
-                                    )),
+                                  duration: const Duration(milliseconds: 1000),
+                                  child: const Text(
+                                    "Bienvenido",
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 40),
+                                  ),
+                                ),
                                 const SizedBox(
                                   height: 10,
                                 ),
@@ -85,38 +91,74 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                   height: _containerHeight,
                   curve: Curves.easeInOut,
                   decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(60),
-                          topRight: Radius.circular(60))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(30),
-                    child: Column(
-                      children: <Widget>[
-                        SizedBox(
-                          height: isKeyboardVisible ? 30 : 60,
-                        ),
-                        FadeInUp(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(60),
+                      topRight: Radius.circular(60),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(30),
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: isKeyboardVisible ? 30 : 60,
+                          ),
+                          AnimatedOpacity(
+                            opacity: _showErrorMessage ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 500),
+                            child: _showErrorMessage
+                                ? Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade100,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.error,
+                                            color: Colors.red),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            _errorMessage,
+                                            style: const TextStyle(
+                                                color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          FadeInUp(
                             duration: const Duration(milliseconds: 1400),
                             child: Container(
                               decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                        color:
-                                            Color.fromRGBO(135, 206, 250, .3),
-                                        blurRadius: 20,
-                                        offset: Offset(0, 10))
-                                  ]),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color.fromRGBO(135, 206, 250, .3),
+                                    blurRadius: 20,
+                                    offset: Offset(0, 10),
+                                  )
+                                ],
+                              ),
                               child: Column(
                                 children: <Widget>[
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                        border: Border(
-                                            bottom: BorderSide(
-                                                color: Colors.grey.shade200))),
+                                      border: Border(
+                                        bottom: BorderSide(
+                                            color: Colors.grey.shade200),
+                                      ),
+                                    ),
                                     child: InputTextField(
                                       textEditingController: _emailController,
                                       hintText: 'Email',
@@ -127,9 +169,11 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                        border: Border(
-                                            bottom: BorderSide(
-                                                color: Colors.grey.shade200))),
+                                      border: Border(
+                                        bottom: BorderSide(
+                                            color: Colors.grey.shade200),
+                                      ),
+                                    ),
                                     child: InputTextField(
                                       textEditingController:
                                           _passwordController,
@@ -141,54 +185,56 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                                   ),
                                 ],
                               ),
-                            )),
-                        const SizedBox(
-                          height: 30,
-                        ),
-                        FadeInUp(
-                          duration: const Duration(milliseconds: 1600),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                )
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.blue.shade200,
-                                        Colors.blue.shade300,
-                                        Colors.blue.shade400,
-                                      ],
-                                    ),
-                                  ),
-                                  child: ElevatedButton(
-                                    onPressed: loginUser,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      shadowColor: Colors.transparent,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 30,
+                          ),
+                          FadeInUp(
+                            duration: const Duration(milliseconds: 1600),
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(50),
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.blue.shade200,
+                                          Colors.blue.shade300,
+                                          Colors.blue.shade400,
+                                        ],
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 40, vertical: 15),
                                     ),
-                                    child: const Text(
-                                      "Ingresar",
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
+                                    child: ElevatedButton(
+                                      onPressed: loginUser,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(50),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 40, vertical: 15),
+                                      ),
+                                      child: const Text(
+                                        "Ingresar",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
                                   ),
-                                ),
-                        ),
-                        const SizedBox(
-                          height: 25,
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: FadeInUp(
+                          ),
+                          const SizedBox(
+                            height: 25,
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: FadeInUp(
                                   duration: const Duration(milliseconds: 1800),
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -220,13 +266,14 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                                             fontWeight: FontWeight.bold),
                                       ),
                                     ),
-                                  )),
-                            ),
-                            const SizedBox(
-                              width: 30,
-                            ),
-                            Expanded(
-                              child: FadeInUp(
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 30,
+                              ),
+                              Expanded(
+                                child: FadeInUp(
                                   duration: const Duration(milliseconds: 1900),
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -265,38 +312,41 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
                                             fontWeight: FontWeight.bold),
                                       ),
                                     ),
-                                  )),
-                            )
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 40,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: const Text('¿No tienes una cuenta?  '),
-                            ),
-                            GestureDetector(
-                              onTap: navigateSignup,
-                              child: Container(
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 40,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
-                                child: const Text(
-                                  'Crear cuenta',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(
-                                        0xFF3B82F6), // Color del texto de enlace
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: const Text('¿No tienes una cuenta?  '),
+                              ),
+                              GestureDetector(
+                                onTap: navigateSignup,
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
+                                  child: const Text(
+                                    'Crear cuenta',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(
+                                          0xFF64B5F6), // Cambia el color aquí
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -335,6 +385,8 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
   void loginUser() async {
     setState(() {
       _isLoading = true; // Show loading indicator
+      _errorMessage = ''; // Clear previous error message
+      _showErrorMessage = false;
     });
 
     final res = await AuthMethods().loginUser(
@@ -365,16 +417,30 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
           print('User not found or error occurred: $userType');
         }
       } else {
-        // Handle login failure (e.g., show an error message)
-        print('Login failed: $res');
+        setState(() {
+          _errorMessage = 'Usuario o contraseña incorrecta, verifique';
+          _showErrorMessage = true;
+        });
+        FocusScope.of(context).unfocus(); // Hide the keyboard
+        Future.delayed(const Duration(seconds: 3), () {
+          setState(() {
+            _showErrorMessage = false; // Hide the error message smoothly
+          });
+        });
       }
     } catch (error) {
       setState(() {
         _isLoading = false; // Hide loading indicator
+        _errorMessage = 'Usuario o contraseña incorrecta, verifique!';
+        _showErrorMessage = true;
       });
-
-      // Handle login failure (e.g., show an error message)
+      FocusScope.of(context).unfocus(); // Hide the keyboard
       print('Login failed: $error');
+      Future.delayed(const Duration(seconds: 3), () {
+        setState(() {
+          _showErrorMessage = false; // Hide the error message smoothly
+        });
+      });
     }
   }
 
@@ -400,6 +466,16 @@ class _LoginFirebaseScreen1State extends State<LoginFirebaseScreen1> {
       }
     } catch (err) {
       print('Error al iniciar sesión con Google: $err');
+      setState(() {
+        _errorMessage = 'Error al iniciar sesión con Google, intente de nuevo';
+        _showErrorMessage = true;
+      });
+      FocusScope.of(context).unfocus(); // Hide the keyboard
+      Future.delayed(const Duration(seconds: 3), () {
+        setState(() {
+          _showErrorMessage = false; // Hide the error message smoothly
+        });
+      });
     }
   }
 

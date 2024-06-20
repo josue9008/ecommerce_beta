@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart'; // Importa el paquete de Flutter para la interfaz de usuario
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/widgets.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart'; // Importa el paquete para escanear códigos QR
 
 import '../../../../domain/domain.dart';
@@ -181,7 +180,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
         setState(() {
           qrText = scanData.code;
           _qrScanned = true; // Indica que se ha escaneado un código QR
-          // Maneja el código QR escaneado aquí (por ejemplo, muestra un diálogo o realiza una acción)
+          showScanner = false; // Oculta el escáner QR
         });
 
         // Obtiene el ID del comercio actual
