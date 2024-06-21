@@ -1,8 +1,9 @@
 import 'dart:io'; // Importa la librería para detectar la plataforma (Android o iOS)
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart'; // Importa el paquete de Flutter para la interfaz de usuario
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart'; // Importa el paquete para escanear códigos QR
 
 import '../../../../domain/domain.dart';
@@ -95,71 +96,157 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   Widget build(BuildContext context) {
     final scaffoldKey = GlobalKey<ScaffoldState>(); // Clave para el Scaffold
 
-    return Scaffold(
-      key: scaffoldKey,
-      drawer: SideMenu(
-        scaffoldKey: scaffoldKey,
-        userType: 'COMERCIO',
-        onDestinationSelected: (int index) {
+    return WillPopScope(
+      onWillPop: () async {
+         if (showScanner) {
+          // Si el escáner QR está abierto, ciérralo y muestra el diálogo de confirmación después de 1 segundo
           setState(() {
-            // Cerrar el lector QR si está abierto
-            if (showScanner) {
-              controller?.stopCamera();
-              showScanner = false;
-              _qrScanned = false;
-            }
-            selectedIndex = index;
+            showScanner = false;
+            _qrScanned = false;
+            controller?.stopCamera();
           });
-        },
-      ),
-      appBar: AppBar(
-        title: Text(
-          _getFirstName(userName) ?? 'Comercio',
-        ), // Muestra el primer nombre del usuario o 'Administrador' si no está disponible
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: () {
-              setState(() {
-                showScanner = !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
-                qrText = '';
-                _qrScanned = false;
-              });
+          
+          // Esperar 1 segundo antes de mostrar el diálogo de confirmación
+          await Future.delayed(Duration(seconds: 1));
+
+          final shouldExit = await showDialog<bool>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Confirmar'),
+                content: const Text('¿Deseas salir de la aplicación?'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: const Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: const Text('Sí'),
+                  ),
+                ],
+              );
             },
-          ),
-          IconButton(
-            onPressed: () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
-            icon: const Icon(Icons.search_rounded), // Icono de búsqueda
-          )
-        ],
-      ),
-      body: Stack(
-        children: [
-          IndexedStack(
-            index: selectedIndex,
-            children: _screens,
-          ),
-          AnimatedOpacity(
-            opacity: showScanner ? 1.0 : 0.0, // Controla la opacidad
-            duration: const Duration(milliseconds: 1000), // Duración de la animación
-            child: Visibility(
-              visible: showScanner, // Muestra el QRView solo cuando showScanner sea true
-              child: Center(
-                child: QRView(
-                  key: qrKey,
-                  onQRViewCreated: _onQRViewCreated,
-                  overlay: QrScannerOverlayShape(
-                    borderColor: Colors.red,
-                    borderRadius: 10,
-                    borderLength: 30,
-                    borderWidth: 10,
-                    cutOutSize: 300,
+          );
+
+          if (shouldExit == true) {
+            if (Platform.isAndroid) {
+              SystemNavigator.pop(); // Cierra la aplicación en Android
+            } else if (Platform.isIOS) {
+              exit(0); // Cierra la aplicación en iOS
+            }
+            return true; // Permitir que el botón de retroceso cierre la pantalla
+          } else {
+            return false; // Evitar que el botón de retroceso cierre la pantalla
+          }
+        } else {
+          // Si el escáner QR no está abierto, muestra el diálogo de confirmación para salir
+          final shouldExit = await showDialog<bool>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Confirmar'),
+                content: const Text('¿Deseas salir de la aplicación?'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: const Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: const Text('Sí'),
+                  ),
+                ],
+              );
+            },
+          );
+
+          if (shouldExit == true) {
+            if (Platform.isAndroid) {
+              SystemNavigator.pop(); // Cierra la aplicación en Android
+            } else if (Platform.isIOS) {
+              exit(0); // Cierra la aplicación en iOS
+            }
+            return true; // Permitir que el botón de retroceso cierre la pantalla
+          } else {
+            return false; // Evitar que el botón de retroceso cierre la pantalla
+          }
+        }
+      },
+      child: Scaffold(
+        key: scaffoldKey,
+        drawer: SideMenu(
+          scaffoldKey: scaffoldKey,
+          userType: 'COMERCIO',
+          onDestinationSelected: (int index) {
+            setState(() {
+              // Cerrar el lector QR si está abierto
+              if (showScanner) {
+                controller?.stopCamera();
+                showScanner = false;
+                _qrScanned = false;
+              }
+              selectedIndex = index;
+            });
+          },
+        ),
+        appBar: AppBar(
+          title: Text(
+            _getFirstName(userName) ?? 'Comercio',
+          ), // Muestra el primer nombre del usuario o 'Administrador' si no está disponible
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.qr_code_scanner),
+              onPressed: () {
+                setState(() {
+                  showScanner = !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
+                  qrText = '';
+                  _qrScanned = false;
+                });
+              },
+            ),
+            IconButton(
+              onPressed: () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
+              icon: const Icon(Icons.search_rounded), // Icono de búsqueda
+            )
+          ],
+        ),
+        body: Stack(
+          children: [
+            IndexedStack(
+              index: selectedIndex,
+              children: _screens,
+            ),
+            AnimatedOpacity(
+              opacity: showScanner ? 1.0 : 0.0, // Controla la opacidad
+              duration: const Duration(milliseconds: 1000), // Duración de la animación
+              child: Visibility(
+                visible: showScanner, // Muestra el QRView solo cuando showScanner sea true
+                child: Center(
+                  child: QRView(
+                    key: qrKey,
+                    onQRViewCreated: _onQRViewCreated,
+                    overlay: QrScannerOverlayShape(
+                      borderColor: Colors.red,
+                      borderRadius: 10,
+                      borderLength: 30,
+                      borderWidth: 10,
+                      cutOutSize: 300,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
