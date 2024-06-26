@@ -61,6 +61,30 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
   }
 
+  Future<int> _getAccumulatedPoints(String userUid, String campaignName) async {
+    final commerceQuerySnapshot = await _firestore.collection('commerce').get();
+    int totalPoints = 0;
+
+    for (final commerceDoc in commerceQuerySnapshot.docs) {
+      final commerceData = CommerceData.fromJson(commerceDoc.data());
+      final userPoints = commerceData.userPointsList.firstWhere(
+        (up) => up.userUid == userUid && up.campaignName == campaignName,
+        orElse: () => UserPoints(
+            userUid: userUid, awardedPoints: 0, campaignName: campaignName),
+      );
+
+      totalPoints += userPoints.awardedPoints;
+
+      // Debugging messages
+      print('Commerce Data: ${commerceData.toJson()}');
+      print('User UID: $userUid');
+      print('Campaign Name: $campaignName');
+      print('User Points: ${userPoints.awardedPoints}');
+    }
+
+    return totalPoints;
+  }
+
   void _showCampaignsModal(BuildContext context, CommerceData commerceData) {
     showModalBottomSheet(
       context: context,
@@ -96,95 +120,107 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       final campaign = commerceData.campaigns[index];
                       final gradientColors =
                           _gradientColors[index % _gradientColors.length];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: gradientColors,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(8.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 2,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
+
+                      return FutureBuilder<int>(
+                        future: _getAccumulatedPoints(
+                            FirebaseAuth.instance.currentUser!.uid,
+                            campaign.campaignName),
+                        builder: (context, snapshot) {
+                          final points = snapshot.data ?? 0;
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: gradientColors,
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(8.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            // Changed Row to Column
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                // Wrap campaign details in a Padding widget
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16.0),
-                                child: Row(
-                                  // Align campaign name and QR button
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        campaign.campaignName,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.qr_code),
-                                      onPressed: () async {
-                                        final user =
-                                            FirebaseAuth.instance.currentUser;
-                                        if (user != null) {
-                                          final qrData = '''
-                                            UID: ${user.uid}
-                                            Comercio: ${commerceData.userName}
-                                            Campaña: ${campaign.campaignName}
-                                           ''';
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              content: QRCode(qrData: qrData),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 16.0, right: 16.0, top: 16.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            campaign.campaignName,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                          );
-                                        }
-                                      },
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.qr_code),
+                                          onPressed: () async {
+                                            final user = FirebaseAuth
+                                                .instance.currentUser;
+                                            if (user != null) {
+                                              final qrData = '''
+                                                UID: ${user.uid}
+                                                Comercio: ${commerceData.userName}
+                                                Campaña: ${campaign.campaignName}
+                                              ''';
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    AlertDialog(
+                                                  content:
+                                                      QRCode(qrData: qrData),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(height: 16.0),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 16.0, right: 16.0, bottom: 16.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Duración: ${campaign.duration} días',
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                        const SizedBox(height: 8.0),
+                                        Text(
+                                          'Objetivos: ${campaign.pointsQuantity} puntos',
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                        const SizedBox(height: 8.0),
+                                        Text(
+                                          'Puntos Acumulados: $points',
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(
-                                  height: 16.0), // Add spacing below the row
-                              Padding(
-                                // Wrap remaining campaign details in a Padding widget
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, bottom: 16.0),
-                                child: Column(
-                                  // Align remaining details vertically
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Duración: ${campaign.duration} días',
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    Text(
-                                      'Objetivos: ${campaign.pointsQuantity} puntos',
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -205,6 +241,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<String?> _getCurrentCommerceId() async {
+    // Implementa la lógica para obtener el ID del comercio actual
+    // Esto puede ser mediante SharedPreferences, un servicio, etc.
+    return 'currentCommerceId';
   }
 
   @override
@@ -338,43 +380,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       ),
                     ),
         ),
-        /* floatingActionButton: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[200]!, Colors.blue[400]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 2,
-                blurRadius: 4,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: FloatingActionButton.extended(
-            backgroundColor: Colors.transparent,
-            label: const Text('Generar QR'),
-            icon: const Icon(Icons.qr_code),
-            onPressed: () async {
-              final user = FirebaseAuth.instance.currentUser;
-              if (user != null) {
-                final qrData = user.email;
-                if (qrData != null) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      content: QRCode(qrData: qrData),
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-        ),*/
       ),
     );
   }
