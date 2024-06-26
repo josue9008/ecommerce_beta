@@ -268,86 +268,87 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   }
 
   void _onQRViewCreated(QRViewController controller) {
-    setState(() {
-      this.controller = controller;
-    });
+  setState(() {
+    this.controller = controller;
+  });
 
-    controller.scannedDataStream.listen((Barcode scanData) async {
-      if (!_qrScanned) {
-        setState(() {
-          qrText = scanData.code;
-          print(
-              'Scanned QR Text: $qrText'); // Debug: Mostrar el texto escaneado
-          _qrScanned = true; // Indica que se ha escaneado un código QR
-          showScanner = false; // Oculta el escáner QR
-        });        
-        final currentCommerceId = await _getCurrentCommerceId();
+  controller.scannedDataStream.listen((Barcode scanData) async {
+    if (!_qrScanned) {
+      setState(() {
+        qrText = scanData.code;
+        print('Scanned QR Text: $qrText'); // Debug: Mostrar el texto escaneado
+        _qrScanned = true; // Indica que se ha escaneado un código QR
+        showScanner = false; // Oculta el escáner QR
+      });
 
-        if (currentCommerceId != null && qrText != null) {
-          final qrData = _parseQRData(qrText!.trim());        
+      final currentCommerceId = await _getCurrentCommerceId();
 
-          if (qrData != null &&  qrData['Comercio']?.trim() == userName?.trim()) {
-            final userUid = qrData['UID']?.trim() ?? 'UID desconocido';
-            final campaignName =  qrData['Campaña']?.trim() ?? 'Campaña desconocido';
-            final commerceDocRef =  _firestore.collection('commerce').doc(currentCommerceId);
-            final commerceDocSnapshot = await commerceDocRef.get();
+      if (currentCommerceId != null && qrText != null) {
+        final qrData = _parseQRData(qrText!.trim());
 
-            if (commerceDocSnapshot.exists) {
-              final commerceData =
-                  CommerceData.fromJson(commerceDocSnapshot.data()!);
-              final existingUserIndex = commerceData.userPointsList.indexWhere(
-                  (up) =>
-                      up.userUid == userUid && up.campaignName == campaignName);
+        if (qrData != null && qrData['Comercio']?.trim() == userName?.trim()) {
+          final userUid = qrData['UID']?.trim() ?? 'UID desconocido';
+          final campaignName = qrData['Campaña']?.trim() ?? 'Campaña desconocido';
+          final commerceDocRef = _firestore.collection('commerce').doc(currentCommerceId);
+          final commerceDocSnapshot = await commerceDocRef.get();
 
-              if (existingUserIndex != -1) {
-                final updatedUserPointsList = [...commerceData.userPointsList];
-                final existingUserPoints =
-                    updatedUserPointsList[existingUserIndex];
-                existingUserPoints.awardedPoints += 10;
+          if (commerceDocSnapshot.exists) {
+            final commerceData = CommerceData.fromJson(commerceDocSnapshot.data()!);
+            final existingUserIndex = commerceData.userPointsList.indexWhere(
+              (up) => up.userUid == userUid && up.campaignName == campaignName);
 
-                await commerceDocRef.update({
-                  'userPointsList':
-                      updatedUserPointsList.map((up) => up.toJson()).toList(),
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Se han adicionado 10 puntos más a $userUid en la campaña $campaignName'),
-                    backgroundColor: Theme.of(context).primaryColor,
-                  ),
-                );
-              } else {
-                final updatedUserPointsList = [...commerceData.userPointsList];
-                updatedUserPointsList.add(UserPoints(
-                    userUid: userUid,
-                    awardedPoints: 10,
-                    campaignName: campaignName));
+            final userDoc = await _firestore.collection('user').doc(userUid).get();
+            final scannedUserName = userDoc.data()?['username'];
 
-                await commerceDocRef.update({
-                  'userPointsList':
-                      updatedUserPointsList.map((up) => up.toJson()).toList(),
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Se han adicionado 10 puntos a $userUid en la campaña $campaignName'),
-                    backgroundColor: Theme.of(context).primaryColor,
-                  ),
-                );
-              }
+            if (existingUserIndex != -1) {
+              final updatedUserPointsList = [...commerceData.userPointsList];
+              final existingUserPoints = updatedUserPointsList[existingUserIndex];
+              existingUserPoints.awardedPoints += 10;
+
+              await commerceDocRef.update({
+                'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Se han adicionado 10 puntos más al usuario $scannedUserName en la campaña $campaignName'),
+                  backgroundColor: Theme.of(context).primaryColor,
+                ),
+              );
+            } else {
+              final updatedUserPointsList = [...commerceData.userPointsList];
+              updatedUserPointsList.add(UserPoints(
+                userUid: userUid,
+                awardedPoints: 10,
+                campaignName: campaignName));
+
+              await commerceDocRef.update({
+                'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Se han adicionado 10 puntos al usuario $scannedUserName en la campaña $campaignName'),
+                  backgroundColor: Theme.of(context).primaryColor,
+                ),
+              );
             }
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Esta campaña no pertenece a este comercio'),
-                backgroundColor: Colors.red,
-              ),
-            );
           }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Esta campaña no pertenece a este comercio'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
-    });
-  }
+    }
+  });
+}
+
+
+
 
   Map<String, String>? _parseQRData(String qrText) {  
     final lines = qrText.split('\n').map((line) => line.trim()).toList();    

@@ -176,7 +176,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                     ),
                                     const SizedBox(height: 8.0),
                                     Text(
-                                      'Cantidad de puntos: ${campaign.pointsQuantity}',
+                                      'Objetivos: ${campaign.pointsQuantity} puntos',
                                       style: const TextStyle(fontSize: 16),
                                     ),
                                   ],

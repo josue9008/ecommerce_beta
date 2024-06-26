@@ -126,7 +126,7 @@ class CampaignDetailsPage extends StatelessWidget {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          '${campaign.pointsQuantity}',
+                                          '${campaign.pointsQuantity} puntos',
                                           style: const TextStyle(fontSize: 16),
                                         ),
                                         const SizedBox(height: 16),   
