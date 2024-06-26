@@ -1,5 +1,4 @@
 import 'dart:io'; // Importa la librería para detectar la plataforma (Android o iOS)
-
 import 'package:flutter/material.dart'; // Importa el paquete de Flutter para la interfaz de usuario
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,7 +10,8 @@ import '../../../widgets/shared/customs/customs.dart';
 import '../commerce.dart'; // Importa tus widgets personalizados
 
 class AdministrationScreen extends StatefulWidget {
-  static const name = 'administration_screen'; // Nombre de la pantalla de administración
+  static const name =
+      'administration_screen'; // Nombre de la pantalla de administración
 
   const AdministrationScreen({super.key}); // Constructor
 
@@ -23,9 +23,11 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? qrText; // Variable para almacenar el código QR escaneado
   QRViewController? controller; // Controlador para el QRView
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR'); // Clave única para el QRView
+  final GlobalKey qrKey =
+      GlobalKey(debugLabel: 'QR'); // Clave única para el QRView
   bool showScanner = false; // Bandera para controlar la visibilidad del QRView
-  bool _qrScanned = false; // Bandera para rastrear si se ha escaneado un código QR 
+  bool _qrScanned =
+      false; // Bandera para rastrear si se ha escaneado un código QR
   int selectedIndex = 0; // Índice para controlar la pantalla seleccionada
   String? commerceId; // Variable para almacenar el commerceId
   String? userName; // Variable para almacenar el nombre del usuario
@@ -45,7 +47,8 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
     if (commerceId != null) {
       setState(() {
         _screens = [
-          AdministratorCampaign(commerceId: commerceId!), // Pasa el commerceId a la pantalla
+          AdministratorCampaign(
+              commerceId: commerceId!), // Pasa el commerceId a la pantalla
         ];
       });
     }
@@ -65,10 +68,11 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   Future<void> _getUserName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final userDoc = await _firestore.collection('commerce').doc(user.uid).get(); // Asegúrate de que la colección sea la correcta
+      final userDoc =
+          await _firestore.collection('commerce').doc(user.uid).get();
       if (userDoc.exists) {
         setState(() {
-          userName = userDoc.data()?['username']; // Asegúrate de que el campo sea el correcto
+          userName = userDoc.data()?['username'];
         });
       }
     }
@@ -98,14 +102,14 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
 
     return WillPopScope(
       onWillPop: () async {
-         if (showScanner) {
+        if (showScanner) {
           // Si el escáner QR está abierto, ciérralo y muestra el diálogo de confirmación después de 1 segundo
           setState(() {
             showScanner = false;
             _qrScanned = false;
             controller?.stopCamera();
           });
-          
+
           // Esperar 1 segundo antes de mostrar el diálogo de confirmación
           await Future.delayed(Duration(seconds: 1));
 
@@ -207,14 +211,16 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
               icon: const Icon(Icons.qr_code_scanner),
               onPressed: () {
                 setState(() {
-                  showScanner = !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
+                  showScanner =
+                      !showScanner; // Cambia el estado de showScanner para mostrar/ocultar el QRView
                   qrText = '';
                   _qrScanned = false;
                 });
               },
             ),
             IconButton(
-              onPressed: () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
+              onPressed:
+                  () {}, // Manejador del botón de búsqueda (sin funcionalidad por ahora)
               icon: const Icon(Icons.search_rounded), // Icono de búsqueda
             )
           ],
@@ -227,9 +233,11 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
             ),
             AnimatedOpacity(
               opacity: showScanner ? 1.0 : 0.0, // Controla la opacidad
-              duration: const Duration(milliseconds: 1000), // Duración de la animación
+              duration: const Duration(
+                  milliseconds: 1000), // Duración de la animación
               child: Visibility(
-                visible: showScanner, // Muestra el QRView solo cuando showScanner sea true
+                visible:
+                    showScanner, // Muestra el QRView solo cuando showScanner sea true
                 child: Center(
                   child: QRView(
                     key: qrKey,
@@ -260,65 +268,113 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   }
 
   void _onQRViewCreated(QRViewController controller) {
-    // Actualiza el controlador del QRView
     setState(() {
       this.controller = controller;
     });
 
-    // Escucha el stream de datos escaneados del QRView
     controller.scannedDataStream.listen((Barcode scanData) async {
-      // Verifica si qrText ya se actualizó antes de volver a actualizar
       if (!_qrScanned) {
-        // Actualiza qrText con el código QR escaneado
         setState(() {
           qrText = scanData.code;
+          print(
+              'Scanned QR Text: $qrText'); // Debug: Mostrar el texto escaneado
           _qrScanned = true; // Indica que se ha escaneado un código QR
           showScanner = false; // Oculta el escáner QR
-        });
-
-        // Obtiene el ID del comercio actual
+        });        
         final currentCommerceId = await _getCurrentCommerceId();
 
-        if (currentCommerceId != null) {
-          final userEmail = qrText;
-          final commerceDocRef = _firestore.collection('commerce').doc(currentCommerceId);
-          final commerceDocSnapshot = await commerceDocRef.get();
+        if (currentCommerceId != null && qrText != null) {
+          final qrData = _parseQRData(qrText!.trim());        
 
-          if (commerceDocSnapshot.exists) {
-            final commerceData = CommerceData.fromJson(commerceDocSnapshot.data()!);
-            final existingUser = commerceData.userPointsList.any((up) => up.userEmail == userEmail);
+          if (qrData != null &&  qrData['Comercio']?.trim() == userName?.trim()) {
+            final userUid = qrData['UID']?.trim() ?? 'UID desconocido';
+            final campaignName =  qrData['Campaña']?.trim() ?? 'Campaña desconocido';
+            final commerceDocRef =  _firestore.collection('commerce').doc(currentCommerceId);
+            final commerceDocSnapshot = await commerceDocRef.get();
 
-            if (existingUser) {
-              final updatedUserPointsList = [...commerceData.userPointsList];
-              final existingUserPoints = updatedUserPointsList.firstWhere((up) => up.userEmail == userEmail);
-              existingUserPoints.awardedPoints += 10;
+            if (commerceDocSnapshot.exists) {
+              final commerceData =
+                  CommerceData.fromJson(commerceDocSnapshot.data()!);
+              final existingUserIndex = commerceData.userPointsList.indexWhere(
+                  (up) =>
+                      up.userUid == userUid && up.campaignName == campaignName);
 
-              await commerceDocRef.update({
-                'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Se han adicionado 10 puntos más a $userEmail en este comercio'),
-                  backgroundColor: Theme.of(context).primaryColor,
-                ),
-              );
-            } else {
-              final updatedUserPointsList = [...commerceData.userPointsList];
-              updatedUserPointsList.add(UserPoints(userEmail: userEmail ?? '', awardedPoints: 10));
+              if (existingUserIndex != -1) {
+                final updatedUserPointsList = [...commerceData.userPointsList];
+                final existingUserPoints =
+                    updatedUserPointsList[existingUserIndex];
+                existingUserPoints.awardedPoints += 10;
 
-              await commerceDocRef.update({
-                'userPointsList': updatedUserPointsList.map((up) => up.toJson()).toList(),
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Se han adicionado 10 puntos a $userEmail en este comercio'),
-                  backgroundColor: Theme.of(context).primaryColor,
-                ),
-              );
+                await commerceDocRef.update({
+                  'userPointsList':
+                      updatedUserPointsList.map((up) => up.toJson()).toList(),
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'Se han adicionado 10 puntos más a $userUid en la campaña $campaignName'),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
+                );
+              } else {
+                final updatedUserPointsList = [...commerceData.userPointsList];
+                updatedUserPointsList.add(UserPoints(
+                    userUid: userUid,
+                    awardedPoints: 10,
+                    campaignName: campaignName));
+
+                await commerceDocRef.update({
+                  'userPointsList':
+                      updatedUserPointsList.map((up) => up.toJson()).toList(),
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'Se han adicionado 10 puntos a $userUid en la campaña $campaignName'),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
+                );
+              }
             }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Esta campaña no pertenece a este comercio'),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         }
       }
     });
+  }
+
+  Map<String, String>? _parseQRData(String qrText) {  
+    final lines = qrText.split('\n').map((line) => line.trim()).toList();    
+
+    // Verificar si hay menos de 3 líneas
+    if (lines.length < 3) {      
+      return null;
+    }
+
+    // Asignar los valores por posición
+    final uidLine = lines[0];
+    final commerceLine = lines[1];
+    final campaignLine = lines[2]; 
+
+    // Verificar si alguna línea no tiene el prefijo esperado
+    if (!uidLine.startsWith('UID: ') ||
+        !commerceLine.startsWith('Comercio: ') ||
+        !campaignLine.startsWith('Campaña: ')) {
+      return null;
+    }
+
+    // Obtener los valores de cada línea eliminando el prefijo y espacios en blanco adicionales
+    final uid = uidLine.substring(5).trim(); // 5 para quitar 'UID: '
+    final commerce =  commerceLine.substring(10).trim(); // 10 para quitar 'Comercio: '
+    final campaign =  campaignLine.substring(9).trim(); // 9 para quitar 'Campaña: '  
+
+    // Retornar el mapa con los valores obtenidos
+    return {'UID': uid, 'Comercio': commerce, 'Campaña': campaign};
   }
 }

@@ -66,81 +66,110 @@ class _ProductsScreenState extends State<ProductsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          builder: (context, scrollController) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-              ),
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    commerceData.userName,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: commerceData.campaigns.length,
+                    itemBuilder: (context, index) {
+                      final campaign = commerceData.campaigns[index];
+                      final gradientColors =
+                          _gradientColors[index % _gradientColors.length];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Container(
-                          width: 40,
-                          height: 5,
-                          margin: const EdgeInsets.only(bottom: 16.0),
                           decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        commerceData.userName,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 16.0),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: commerceData.campaigns.length,
-                        itemBuilder: (context, index) {
-                          final campaign = commerceData.campaigns[index];
-                          final gradientColors =
-                              _gradientColors[index % _gradientColors.length];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: gradientColors,
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(8.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 2,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
+                            gradient: LinearGradient(
+                              colors: gradientColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            ],
+                          ),
+                          child: Column(
+                            // Changed Row to Column
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                // Wrap campaign details in a Padding widget
+                                padding: const EdgeInsets.only(
+                                    left: 16.0, right: 16.0, top: 16.0),
+                                child: Row(
+                                  // Align campaign name and QR button
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      campaign.campaignName,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                                    Expanded(
+                                      child: Text(
+                                        campaign.campaignName,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 8.0),
+                                    IconButton(
+                                      icon: const Icon(Icons.qr_code),
+                                      onPressed: () async {
+                                        final user =
+                                            FirebaseAuth.instance.currentUser;
+                                        if (user != null) {
+                                          final qrData = '''
+                                            UID: ${user.uid}
+                                            Comercio: ${commerceData.userName}
+                                            Campaña: ${campaign.campaignName}
+                                           ''';
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              content: QRCode(qrData: qrData),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(
+                                  height: 16.0), // Add spacing below the row
+                              Padding(
+                                // Wrap remaining campaign details in a Padding widget
+                                padding: const EdgeInsets.only(
+                                    left: 16.0, right: 16.0, bottom: 16.0),
+                                child: Column(
+                                  // Align remaining details vertically
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
                                       'Duración: ${campaign.duration} días',
                                       style: const TextStyle(fontSize: 16),
@@ -150,22 +179,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                       'Cantidad de puntos: ${campaign.pointsQuantity}',
                                       style: const TextStyle(fontSize: 16),
                                     ),
-                                    const SizedBox(height: 8.0),
                                   ],
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
+                ],
               ),
-            );
-          },
-        );
-      },
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -310,7 +338,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       ),
                     ),
         ),
-        floatingActionButton: Container(
+        /* floatingActionButton: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Colors.blue[200]!, Colors.blue[400]!],
@@ -346,7 +374,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               }
             },
           ),
-        ),
+        ),*/
       ),
     );
   }

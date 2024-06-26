@@ -66,23 +66,27 @@ class CommerceData {
 }
 
 class UserPoints {
-  final String userEmail;
+  final String userUid;
+  final String campaignName;
   int awardedPoints;
 
   UserPoints({
-    required this.userEmail,
+    required this.userUid,
+    required this.campaignName,
     required this.awardedPoints,
   });
 
   factory UserPoints.fromJson(Map<String, dynamic> json) {
     return UserPoints(
-      userEmail: json['userEmail'] ?? '',
+      userUid: json['userUid'] ?? '',
+      campaignName: json['campaignName'] ?? '',
       awardedPoints: json['awardedPoints'] ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    "userEmail": userEmail,
+    "userUid": userUid,
+     "campaignName": campaignName,
     "awardedPoints": awardedPoints,
   };
 }
