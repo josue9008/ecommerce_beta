@@ -18,6 +18,7 @@ class AdministratorCampaign extends StatefulWidget {
 class _AdministratorCampaignState extends State<AdministratorCampaign> {
   final List<Campaign> _campaigns = [];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -129,7 +130,7 @@ class _AdministratorCampaignState extends State<AdministratorCampaign> {
     final _formKey = GlobalKey<FormState>();
     String? campaignName;
     int? duration;
-    int? pointsQuantity;
+    int pointsQuantity = 10;
 
     showDialog(
       context: context,
@@ -159,11 +160,17 @@ class _AdministratorCampaignState extends State<AdministratorCampaign> {
                     onSaved: (value) => duration = int.tryParse(value!),
                   ),
                   TextFormField(
+                    initialValue: '10',
                     decoration: const InputDecoration(labelText: 'Objetivo'),
                     keyboardType: TextInputType.number,
-                    validator: (value) =>
-                        value!.isEmpty ? 'Ingrese la cantidad de puntos' : null,
-                    onSaved: (value) => pointsQuantity = int.tryParse(value!),
+                    validator: (value) {
+                      int? intValue = int.tryParse(value!);
+                      if (intValue == null || intValue < 10) {
+                        return 'La cantidad de puntos debe ser mayor a 10';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => pointsQuantity = int.tryParse(value!)!,
                   ),
                 ],
               ),
@@ -177,48 +184,67 @@ class _AdministratorCampaignState extends State<AdministratorCampaign> {
               },
             ),
             TextButton(
-              child: const Text('Adicionar'),
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  String campaignId =
-                      _firestore.collection('commerce').doc().id;
-                  Campaign newCampaign = Campaign(
-                    id: campaignId,
-                    campaignName: campaignName!,
-                    duration: duration!,
-                    pointsQuantity: pointsQuantity!,
-                  );
+              child: _isLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                      ),
+                    )
+                  : const Text('Adicionar'),
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _formKey.currentState!.save();
+                        String campaignId =
+                            _firestore.collection('commerce').doc().id;
+                        Campaign newCampaign = Campaign(
+                          id: campaignId,
+                          campaignName: campaignName!,
+                          duration: duration!,
+                          pointsQuantity: pointsQuantity,
+                        );
 
-                  await AuthMethods()
-                      .addCampaignToCommerce(widget.commerceId, newCampaign);
+                        await AuthMethods().addCampaignToCommerce(
+                            widget.commerceId, newCampaign);
 
-                  setState(() {
-                    _campaigns.add(newCampaign);
-                  });
+                        setState(() {
+                          _campaigns.add(newCampaign);
+                          _isLoading = false;
+                        });
 
-                  Navigator.of(context).pop();
+                        Navigator.of(context).pop();
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Campaña creada de forma satisfactoria'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              },
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('Campaña creada de forma satisfactoria'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    },
             ),
           ],
         );
       },
-    );
+    ).then((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
   }
 
   void _showEditCampaignDialog(Campaign campaign) {
     final _formKey = GlobalKey<FormState>();
     String? campaignName = campaign.campaignName;
     int? duration = campaign.duration;
-    int? pointsQuantity = campaign.pointsQuantity;
+    int pointsQuantity = campaign.pointsQuantity;
 
     showDialog(
       context: context,
@@ -254,9 +280,14 @@ class _AdministratorCampaignState extends State<AdministratorCampaign> {
                     decoration:
                         const InputDecoration(labelText: 'Cantidad de puntos'),
                     keyboardType: TextInputType.number,
-                    validator: (value) =>
-                        value!.isEmpty ? 'Ingrese la cantidad de puntos' : null,
-                    onSaved: (value) => pointsQuantity = int.tryParse(value!),
+                    validator: (value) {
+                      int? intValue = int.tryParse(value!);
+                      if (intValue == null || intValue < 10) {
+                        return 'La cantidad de puntos debe ser mayor a 10';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => pointsQuantity = int.tryParse(value!)!,
                   ),
                 ],
               ),
@@ -270,44 +301,62 @@ class _AdministratorCampaignState extends State<AdministratorCampaign> {
               },
             ),
             TextButton(
-              child: const Text('Guardar'),
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  Campaign updatedCampaign = Campaign(
-                    id: campaign.id,
-                    campaignName: campaignName!,
-                    duration: duration!,
-                    pointsQuantity: pointsQuantity!,
-                  );
+              child: _isLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                      ),
+                    )
+                  : const Text('Guardar'),
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _formKey.currentState!.save();
+                        Campaign updatedCampaign = Campaign(
+                          id: campaign.id,
+                          campaignName: campaignName!,
+                          duration: duration!,
+                          pointsQuantity: pointsQuantity,
+                        );
 
-                  await AuthMethods().updateCampaignInCommerce(
-                      widget.commerceId, updatedCampaign);
+                        await AuthMethods().updateCampaignInCommerce(
+                            widget.commerceId, updatedCampaign);
 
-                  setState(() {
-                    int index =
-                        _campaigns.indexWhere((c) => c.id == campaign.id);
-                    if (index != -1) {
-                      _campaigns[index] = updatedCampaign;
-                    }
-                  });
+                        setState(() {
+                          int index =
+                              _campaigns.indexWhere((c) => c.id == campaign.id);
+                          if (index != -1) {
+                            _campaigns[index] = updatedCampaign;
+                          }
+                          _isLoading = false;
+                        });
 
-                  Navigator.of(context).pop();
+                        Navigator.of(context).pop();
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('Campaña actualizada de forma satisfactoria'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              },
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Campaña actualizada de forma satisfactoria'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    },
             ),
           ],
         );
       },
-    );
+    ).then((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
   }
 
   void _deleteCampaign(Campaign campaign) {
@@ -326,28 +375,47 @@ class _AdministratorCampaignState extends State<AdministratorCampaign> {
               },
             ),
             TextButton(
-              child: const Text('Eliminar'),
-              onPressed: () async {
-                await AuthMethods()
-                    .deleteCampaignFromCommerce(widget.commerceId, campaign.id);
+              child: _isLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                      ),
+                    )
+                  : const Text('Eliminar'),
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      await AuthMethods().deleteCampaignFromCommerce(
+                          widget.commerceId, campaign.id);
 
-                setState(() {
-                  _campaigns.removeWhere((c) => c.id == campaign.id);
-                });
+                      setState(() {
+                        _campaigns.removeWhere((c) => c.id == campaign.id);
+                        _isLoading = false;
+                      });
 
-                Navigator.of(context).pop();
+                      Navigator.of(context).pop();
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Campaña eliminada de forma satisfactoria'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content:
+                              Text('Campaña eliminada de forma satisfactoria'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
             ),
           ],
         );
       },
-    );
+    ).then((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
   }
 }
